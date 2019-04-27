@@ -1,0 +1,10 @@
+{
+  "files.exclude": {
+    ".gitignore": true,
+    ".vscode": true,
+    "dist": true,
+    "node_modules": true,
+    "package.lock": true,
+    "yarn.lock": true
+  }
+}

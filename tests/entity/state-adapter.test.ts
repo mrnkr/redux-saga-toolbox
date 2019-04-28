@@ -1,5 +1,6 @@
-import sinon from 'sinon';
+import sinon, { SinonSpy } from 'sinon';
 import { createStateOperator, DidMutate } from '../../src/entity/state-adapter';
+import { EntityState } from '../../src/entity/models';
 
 /**
  * Specification of a factory function
@@ -9,17 +10,27 @@ import { createStateOperator, DidMutate } from '../../src/entity/state-adapter';
  */
 describe('state adapter tests', () => {
 
+  let spy: SinonSpy;
+  let state: EntityState<{}>;
+
+  beforeAll(() => {
+    spy = sinon.spy();
+    state = { ids: [], entities: {} };
+  });
+
+  afterEach(() => {
+    spy.resetHistory();
+  });
+
   it('should have a module', () => {
     expect(createStateOperator).toBeDefined();
   });
 
   it('should return the same state (same pointer) wnen nothing is mutated', () => {
-    const spy = sinon.spy();
     const mutator = () => {
       spy();
       return DidMutate.None;
     }
-    const state = { ids: [], entities: {} };
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);
@@ -29,12 +40,10 @@ describe('state adapter tests', () => {
   });
 
   it('should change only entities (ids pointer should be the same as before)', () => {
-    const spy = sinon.spy();
     const mutator = () => {
       spy();
       return DidMutate.EntitiesOnly;
     }
-    const state = { ids: [], entities: {} };
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);
@@ -46,12 +55,10 @@ describe('state adapter tests', () => {
   });
 
   it('should change both ids and entities', () => {
-    const spy = sinon.spy();
     const mutator = () => {
       spy();
       return DidMutate.Both;
     };
-    const state = { ids: [], entities: {} };
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);

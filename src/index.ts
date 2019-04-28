@@ -1,1 +1,1 @@
-export { createEntityAdapter } from './entity';
+export * from './entity';

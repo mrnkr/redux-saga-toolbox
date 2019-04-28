@@ -1,4 +1,4 @@
-export type Comparer<T> = (a: T, b: T) => string;
+export type Comparer<T> = (a: T, b: T) => number;
 
 export type IdSelector<T> = (model: T) => string;
 

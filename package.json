@@ -17,11 +17,17 @@
   ],
   "author": "Mr.NKR",
   "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "redux": "^4.0.1",
+    "redux-saga": "^1.0.2"
+  },
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/lodash": "^4.14.123",
     "@types/sinon": "^7.0.11",
     "jest": "^24.7.1",
+    "redux-saga-test-plan": "v4.0.0-beta.2",
     "sinon": "^7.3.2",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.1.0",
@@ -43,8 +49,5 @@
     "coverageReporters": [
       "text"
     ]
-  },
-  "dependencies": {
-    "lodash": "^4.17.11"
   }
 }

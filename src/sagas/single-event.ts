@@ -1,9 +1,14 @@
 import isUndefined from 'lodash/isUndefined';
 import negate from 'lodash/negate';
-import { SagaIterator } from 'redux-saga';
-import { Effect, cancel, takeEvery, takeLatest, put, race, call, delay } from 'redux-saga/effects';
-import { MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration } from './typings';
+import { SagaIterator, Task } from 'redux-saga';
+import { cancel, takeEvery, takeLatest, put, race, call, delay, cancelled } from 'redux-saga/effects';
+import { Omit, MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration } from './typings';
 
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+
+const MAX_TIMEOUT = ONE_HOUR;
 const isDefined = negate(isUndefined);
 
 export function createSingleEventSaga<T, R>({
@@ -18,10 +23,10 @@ export function createSingleEventSaga<T, R>({
   if (isUndefined(takeEveryActionType) && isUndefined(takeLatestActionType))
     throw new Error('Not listening to any actions is unsupported (not to mention useless...)');
 
-  let task: any;
+  let task: Task;
   const handler = createSingleEventSagaHandler(handlerConfig);
 
-  function* cancelSaga(): Iterable<Effect> {
+  function* cancelSaga() {
     yield cancel(task);
   }
 
@@ -41,27 +46,36 @@ export function createSingleEventSagaHandler<T, R, A extends MyAction<T>>({
   loadingAction,
   beforeAction = function* (args): SagaIterator { return args; },
   action,
-  timeout: to = Number.MAX_SAFE_INTEGER,
+  timeout: to = MAX_TIMEOUT,
+  retry = 0,
   afterAction = function* (args): SagaIterator { return args; },
   runAfterCommit: shouldRunAfterCommit = false,
   commitAction,
   successAction,
   errorAction
 }: SingleEventSagaHandlerConfiguration<T, R>) {
-  function* runAction(args: Pick<A, Exclude<keyof A, 'type'>>): SagaIterator {
-    const processedArgs = yield* beforeAction(args.payload!);
+  function* runAction(args: Omit<A, 'type'>): SagaIterator {
+    try {
+      const processedArgs = yield* beforeAction(args.payload);
 
-    const { result, timeout } = yield race({
-      result: call(action, processedArgs),
-      timeout: delay(to)
-    });
+      const { result, timeout } = yield race({
+        result: call(action, processedArgs),
+        timeout: delay(to)
+      });
 
-    if (timeout)
-      throw new Error('Action timed out');
+      if (timeout)
+        throw new Error('Action timed out');
 
-    const processedResult: R = yield* afterAction(result);
+      const processedResult: R = yield* afterAction(result, args.payload);
 
-    return processedResult;
+      return processedResult;
+    } catch (err) {
+      if (retry > 0) {
+        retry--;
+        yield* runAction(args);
+      } else
+        throw err;
+    }
   }
 
   return function* handler({ type, ...args }: A): SagaIterator {
@@ -80,6 +94,9 @@ export function createSingleEventSagaHandler<T, R, A extends MyAction<T>>({
       yield put(successAction(result!));
     } catch (err) {
       yield put(errorAction(err));
+    } finally {
+      if (yield cancelled())
+        yield put(errorAction(new Error('Action cancelled')));
     }
   }
 }

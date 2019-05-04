@@ -2,14 +2,17 @@ import { Action } from 'redux';
 import { SagaIterator } from 'redux-saga';
 import { Effect } from 'redux-saga/effects';
 
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 export interface MyAction<T> extends Action {
   payload?: T;
   error?: any;
 }
 
 export interface SingleEventSagaConfiguration<T, R> {
-  takeEvery?: any;
-  takeLatest?: any;
+  takeEvery?: string;
+  takeLatest?: string;
+  cancelActionType?: string;
 
   loadingAction: () => Action;
   commitAction: (payload: R | T) => MyAction<T | R>;
@@ -18,19 +21,13 @@ export interface SingleEventSagaConfiguration<T, R> {
 
   runAfterCommit?: boolean;
   timeout?: number;
-  cancelActionType?: string;
+  retry?: number;
 
-  beforeAction?: (args: T) => SagaIterator;
-  afterAction?: (args: any) => SagaIterator;
+  beforeAction?: (args?: T) => SagaIterator;
+  afterAction?: (res: any, args?: T) => SagaIterator;
 
-  action: (args: any) => any;
+  action: (args?: any) => any;
 }
 
-type SingleEventSagaHandlerConfiguration<T, R> =
-  Pick<
-    SingleEventSagaConfiguration<T, R>,
-    Exclude<
-      keyof SingleEventSagaConfiguration<T, R>,
-      'takeEvery' | 'takeLatest' | 'cancelActionType'
-    >
-  >
+export type SingleEventSagaHandlerConfiguration<T, R> =
+  Omit<SingleEventSagaConfiguration<T, R>, 'takeEvery' | 'takeLatest' | 'cancelActionType'>

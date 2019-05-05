@@ -1,7 +1,7 @@
 import isUndefined from 'lodash/isUndefined';
 import negate from 'lodash/negate';
 import { SagaIterator, Task } from 'redux-saga';
-import { cancel, takeEvery, takeLatest, put, race, call, delay, cancelled } from 'redux-saga/effects';
+import { cancel, takeEvery, takeLatest, put, race, call, delay, cancelled, take } from 'redux-saga/effects';
 import { Omit, MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration } from './typings';
 
 const ONE_SECOND = 1000;
@@ -50,6 +50,11 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
   retry = 0,
   afterAction = function* (args): SagaIterator { return args; },
   runAfterCommit: shouldRunAfterCommit = false,
+  undoThreshold = 0,
+  undoActionType = '_',
+  undoPayloadBuilder: buildUndoPayload = function* (args): SagaIterator { return args; },
+  undoAction = () => ({ type: '_' }),
+  undoOnError = true,
   commitAction,
   successAction,
   errorAction
@@ -79,24 +84,46 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
   }
 
   return function* handler({ type, ...args }: TAction): SagaIterator {
+    let undoPayload: TPayload;
+
     try {
       let result: TResult;
       yield put(loadingAction());
+      undoPayload = yield* buildUndoPayload(args.payload);
 
-      if (!shouldRunAfterCommit)
+      if (shouldRunAfterCommit) {
+        yield put(commitAction(args.payload!));
+
+        const { commit, undo } = yield race({
+          commit: delay(undoThreshold),
+          undo: take(undoActionType)
+        });
+
+        if (undo)
+          yield put(undoAction(undoPayload));
+
+        if (commit) {
+          result = yield* runAction(args);
+          yield put(successAction(result));
+        }
+      }
+
+      if (!shouldRunAfterCommit) {
         result = yield* runAction(args);
-
-      yield put(commitAction(result! || args.payload!));
-
-      if (shouldRunAfterCommit)
-        result = yield* runAction(args);
-
-      yield put(successAction(result!));
+        yield put(commitAction(result));
+        yield put(successAction(result));
+      }
     } catch (err) {
       yield put(errorAction(err));
+      if (undoOnError)
+        yield put(undoAction(undoPayload!));
     } finally {
-      if (yield cancelled())
+      if (yield cancelled()) {
         yield put(errorAction(new Error('Action cancelled')));
+        if (undoOnError)
+          yield put(undoAction(undoPayload!));
+      }
+
     }
   }
 }

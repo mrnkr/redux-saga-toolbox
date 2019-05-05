@@ -9,25 +9,31 @@ export interface MyAction<T> extends Action {
   error?: any;
 }
 
-export interface SingleEventSagaConfiguration<T, R> {
+export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
   takeEvery?: string;
   takeLatest?: string;
   cancelActionType?: string;
 
   loadingAction: () => Action;
-  commitAction: (payload: R | T) => MyAction<T | R>;
-  successAction: (payload?: R) => MyAction<R>;
-  errorAction: (err: any) => MyAction<T>;
+  commitAction: (payload: TResult | TPayload) => MyAction<TPayload | TResult>;
+  successAction: (payload?: TResult) => MyAction<TResult>;
+  errorAction: (err: any) => MyAction<TPayload>;
 
   runAfterCommit?: boolean;
   timeout?: number;
   retry?: number;
 
-  beforeAction?: (args?: T) => SagaIterator;
-  afterAction?: (res: any, args?: T) => SagaIterator;
+  undoOnError?: boolean;
+  undoThreshold?: number;
+  undoActionType?: string;
+  undoAction?: (payload: TUndoPayload) => MyAction<TUndoPayload>;
+  undoPayloadBuilder?: (args?: TPayload) => SagaIterator;
+
+  beforeAction?: (args?: TPayload) => SagaIterator;
+  afterAction?: (res: any, args?: TPayload) => SagaIterator;
 
   action: (args?: any) => any;
 }
 
-export type SingleEventSagaHandlerConfiguration<T, R> =
-  Omit<SingleEventSagaConfiguration<T, R>, 'takeEvery' | 'takeLatest' | 'cancelActionType'>
+export type SingleEventSagaHandlerConfiguration<TPayload, TResult, TUndoPayload = TPayload> =
+  Omit<SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload>, 'takeEvery' | 'takeLatest' | 'cancelActionType'>

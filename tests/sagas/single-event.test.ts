@@ -64,6 +64,43 @@ describe('single event saga factory test', () => {
         .silentRun();
     });
 
+    it('should undo upon cancellation', () => {
+      const watcher = createSingleEventSaga({
+        takeLatest: 'REQUEST',
+        ...emptyHandlerConfig,
+        action: () => new Promise((resolve) => setTimeout(() => resolve(), 50)),
+        cancelActionType: 'CANCEL',
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(watcher)
+        .put({ type: 'ERROR', error: new Error('Action cancelled') })
+        .put({ type: 'UNDO' })
+        .dispatch({ type: 'REQUEST' })
+        .delay(30)
+        .dispatch({ type: 'CANCEL' })
+        .silentRun();
+    });
+
+    it('should not undo upon cancellation', () => {
+      const watcher = createSingleEventSaga({
+        takeLatest: 'REQUEST',
+        ...emptyHandlerConfig,
+        action: () => new Promise((resolve) => setTimeout(() => resolve(), 50)),
+        cancelActionType: 'CANCEL',
+        undoOnError: false,
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(watcher)
+        .put({ type: 'ERROR', error: new Error('Action cancelled') })
+        .not.put({ type: 'UNDO' })
+        .dispatch({ type: 'REQUEST' })
+        .delay(30)
+        .dispatch({ type: 'CANCEL' })
+        .silentRun();
+    });
+
     it('should throw when not provided a forking action', () => {
       expect(() => createSingleEventSaga({ } as any))
         .toThrow();
@@ -196,6 +233,105 @@ describe('single event saga factory test', () => {
 
       return expectSaga(handler, requestAction)
         .put({ type: 'COMMIT', payload: undefined })
+        .run();
+    });
+
+    it('should give the user 120ms to undo their action', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        runAfterCommit: true,
+        undoThreshold: 120,
+        undoActionType: 'REQUEST_UNDO',
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .delay(80)
+        .dispatch({ type: 'REQUEST_UNDO' })
+        .put({ type: 'UNDO' })
+        .not.put({ type: 'SUCCESS' })
+        .run();
+    });
+
+    it('should commit after having given the user 120ms to undo their action', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        runAfterCommit: true,
+        undoThreshold: 120,
+        undoActionType: 'REQUEST_UNDO',
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .not.put({ type: 'UNDO' })
+        .put({ type: 'COMMIT', payload: undefined })
+        .run();
+    });
+
+    it('should not take the undo action after 120ms', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        runAfterCommit: true,
+        undoThreshold: 120,
+        undoActionType: 'REQUEST_UNDO',
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .delay(140)
+        .dispatch({ type: 'REQUEST_UNDO' })
+        .not.put({ type: 'UNDO' })
+        .put({ type: 'COMMIT', payload: undefined })
+        .run();
+    });
+
+    it('should process the undo payload after loading', () => {
+      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'Hello' } };
+      const handler = createSingleEventSagaHandler({
+        ...nonEmptyHandlerConfig,
+        runAfterCommit: true,
+        undoThreshold: 120,
+        undoActionType: 'REQUEST_UNDO',
+        undoAction: (payload) => ({ type: 'UNDO', payload }),
+        undoPayloadBuilder: function* (): SagaIterator { return { data: 'Bye' } }
+      });
+
+      return expectSaga(handler, requestAction)
+        .delay(80)
+        .dispatch({ type: 'REQUEST_UNDO' })
+        .put({ type: 'UNDO', payload: { data: 'Bye' } })
+        .run();
+    });
+
+    it('should undo on error', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        action: () => { throw new Error('Harry Potter is dead!') },
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .put({ type: 'ERROR', error: new Error('Harry Potter is dead!') })
+        .put({ type: 'UNDO' })
+        .run();
+    });
+
+    it('should not undo on error', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        action: () => { throw new Error('Harry Potter is dead!') },
+        undoOnError: false,
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .put({ type: 'ERROR', error: new Error('Harry Potter is dead!') })
+        .not.put({ type: 'UNDO' })
         .run();
     });
 

@@ -11,12 +11,12 @@ const ONE_HOUR = 60 * ONE_MINUTE;
 const MAX_TIMEOUT = ONE_HOUR;
 const isDefined = negate(isUndefined);
 
-export function createSingleEventSaga<T, R>({
+export function createSingleEventSaga<TPayload, TResult>({
   takeEvery: takeEveryActionType,
   takeLatest: takeLatestActionType,
   cancelActionType,
   ...handlerConfig
-}: SingleEventSagaConfiguration<T, R>) {
+}: SingleEventSagaConfiguration<TPayload, TResult>) {
   if (isDefined(takeEveryActionType) && isDefined(takeLatestActionType))
     throw new Error('Using takeEvery and takeLatest in the same watcher is not possible');
 
@@ -42,7 +42,7 @@ export function createSingleEventSaga<T, R>({
   }
 }
 
-export function createSingleEventSagaHandler<T, R, A extends MyAction<T>>({
+export function createSingleEventSagaHandler<TPayload, TResult, TAction extends MyAction<TPayload>>({
   loadingAction,
   beforeAction = function* (args): SagaIterator { return args; },
   action,
@@ -53,8 +53,8 @@ export function createSingleEventSagaHandler<T, R, A extends MyAction<T>>({
   commitAction,
   successAction,
   errorAction
-}: SingleEventSagaHandlerConfiguration<T, R>) {
-  function* runAction(args: Omit<A, 'type'>): SagaIterator {
+}: SingleEventSagaHandlerConfiguration<TPayload, TResult>) {
+  function* runAction(args: Omit<TAction, 'type'>): SagaIterator {
     try {
       const processedArgs = yield* beforeAction(args.payload);
 
@@ -66,7 +66,7 @@ export function createSingleEventSagaHandler<T, R, A extends MyAction<T>>({
       if (timeout)
         throw new Error('Action timed out');
 
-      const processedResult: R = yield* afterAction(result, args.payload);
+      const processedResult: TResult = yield* afterAction(result, args.payload);
 
       return processedResult;
     } catch (err) {
@@ -78,9 +78,9 @@ export function createSingleEventSagaHandler<T, R, A extends MyAction<T>>({
     }
   }
 
-  return function* handler({ type, ...args }: A): SagaIterator {
+  return function* handler({ type, ...args }: TAction): SagaIterator {
     try {
-      let result: R;
+      let result: TResult;
       yield put(loadingAction());
 
       if (!shouldRunAfterCommit)

@@ -2,7 +2,7 @@ import isUndefined from 'lodash/isUndefined';
 import negate from 'lodash/negate';
 import { SagaIterator, Task } from 'redux-saga';
 import { cancel, takeEvery, takeLatest, put, race, call, delay, cancelled, take } from 'redux-saga/effects';
-import { Omit, MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration } from './typings';
+import { Omit, MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration, UndoAction } from './typings';
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
@@ -52,6 +52,7 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
   runAfterCommit: shouldRunAfterCommit = false,
   undoThreshold = 0,
   undoActionType = '_',
+  undoId = '',
   undoPayloadBuilder: buildUndoPayload = function* (args): SagaIterator { return args; },
   undoAction = () => ({ type: '_' }),
   undoOnError = true,
@@ -96,7 +97,10 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
 
         const { commit, undo } = yield race({
           commit: delay(undoThreshold),
-          undo: take(undoActionType)
+          undo: take((action: UndoAction) =>
+            action.type === undoActionType &&
+            (undoId ? action.undoId === undoId : true)
+          )
         });
 
         if (undo)

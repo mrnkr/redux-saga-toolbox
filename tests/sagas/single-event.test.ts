@@ -335,6 +335,44 @@ describe('single event saga factory test', () => {
         .run();
     });
 
+    it('should undo for the undoId is equal', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        runAfterCommit: true,
+        undoThreshold: 120,
+        undoActionType: 'REQUEST_UNDO',
+        undoId: '1577158118',
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .delay(80)
+        .dispatch({ type: 'REQUEST_UNDO', undoId: '1577158118' })
+        .put({ type: 'UNDO' })
+        .not.put({ type: 'SUCCESS', payload: { data: [ 'hello', 'there' ] } })
+        .run();
+    });
+
+    it('should not undo for the undoId is different', () => {
+      const requestAction: Action = { type: 'REQUEST' };
+      const handler = createSingleEventSagaHandler({
+        ...emptyHandlerConfig,
+        runAfterCommit: true,
+        undoThreshold: 120,
+        undoActionType: 'REQUEST_UNDO',
+        undoId: '1577158118',
+        undoAction: () => ({ type: 'UNDO' })
+      });
+
+      return expectSaga(handler, requestAction)
+        .delay(80)
+        .dispatch({ type: 'REQUEST_UNDO', undoId: '3783787042' })
+        .not.put({ type: 'UNDO' })
+        .put({ type: 'SUCCESS', payload: { data: [ 'hello', 'there' ] } })
+        .run();
+    });
+
     it('should not resolve in time', () => {
       let retryCount = 4;
       const requestAction: Action = { type: 'REQUEST' };

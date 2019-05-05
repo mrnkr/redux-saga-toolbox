@@ -9,6 +9,10 @@ export interface MyAction<T> extends Action {
   error?: any;
 }
 
+export interface UndoAction extends Action {
+  undoId?: string;
+}
+
 export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
   takeEvery?: string;
   takeLatest?: string;
@@ -26,6 +30,7 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   undoOnError?: boolean;
   undoThreshold?: number;
   undoActionType?: string;
+  undoId?: string;
   undoAction?: (payload: TUndoPayload) => MyAction<TUndoPayload>;
   undoPayloadBuilder?: (args?: TPayload) => SagaIterator;
 

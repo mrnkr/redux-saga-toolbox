@@ -1,4 +1,3 @@
-import sinon, { SinonSpy } from 'sinon';
 import { createStateOperator, DidMutate } from '../../src/entity/state-adapter';
 import { EntityState } from '../../src/entity/models';
 
@@ -10,16 +9,16 @@ import { EntityState } from '../../src/entity/models';
  */
 describe('state adapter tests', () => {
 
-  let spy: SinonSpy;
+  let mock: jest.Mock;
   let state: EntityState<{}>;
 
   beforeAll(() => {
-    spy = sinon.spy();
+    mock = jest.fn();
     state = { ids: [], entities: {} };
   });
 
   afterEach(() => {
-    spy.resetHistory();
+    mock.mockClear();
   });
 
   it('should have a module', () => {
@@ -28,27 +27,27 @@ describe('state adapter tests', () => {
 
   it('should return the same state (same pointer) wnen nothing is mutated', () => {
     const mutator = () => {
-      spy();
+      mock();
       return DidMutate.None;
     }
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);
 
-    expect(spy.calledOnce).toBeTruthy();
+    expect(mock).toHaveBeenCalled();
     expect(result).toBe(state);
   });
 
   it('should change only entities (ids pointer should be the same as before)', () => {
     const mutator = () => {
-      spy();
+      mock();
       return DidMutate.EntitiesOnly;
     }
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);
 
-    expect(spy.calledOnce).toBeTruthy();
+    expect(mock).toHaveBeenCalled();
     expect(result).not.toBe(state);
     expect(result.ids).toBe(state.ids);
     expect(result.entities).not.toBe(state.entities);
@@ -56,14 +55,14 @@ describe('state adapter tests', () => {
 
   it('should change both ids and entities', () => {
     const mutator = () => {
-      spy();
+      mock();
       return DidMutate.Both;
     };
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);
 
-    expect(spy.calledOnce).toBeTruthy();
+    expect(mock).toHaveBeenCalled();
     expect(result).not.toBe(state);
     expect(result.ids).not.toBe(state.ids);
     expect(result.entities).not.toBe(state.entities);

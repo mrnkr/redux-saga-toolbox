@@ -1,7 +1,6 @@
-import isUndefined from 'lodash/isUndefined';
-import negate from 'lodash/negate';
 import { SagaIterator, Task } from 'redux-saga';
 import { cancel, takeEvery, takeLatest, put, race, call, delay, cancelled, take } from 'redux-saga/effects';
+import { assertValidConfig } from './validation';
 import { Omit, MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration, UndoAction } from './typings';
 
 const ONE_SECOND = 1000;
@@ -9,19 +8,16 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 
 const MAX_TIMEOUT = ONE_HOUR;
-const isDefined = negate(isUndefined);
 
-export function createSingleEventSaga<TPayload, TResult>({
-  takeEvery: takeEveryActionType,
-  takeLatest: takeLatestActionType,
-  cancelActionType,
-  ...handlerConfig
-}: SingleEventSagaConfiguration<TPayload, TResult>) {
-  if (isDefined(takeEveryActionType) && isDefined(takeLatestActionType))
-    throw new Error('Using takeEvery and takeLatest in the same watcher is not possible');
+export function createSingleEventSaga<TPayload, TResult>(config: SingleEventSagaConfiguration<TPayload, TResult>) {
+  assertValidConfig(config);
 
-  if (isUndefined(takeEveryActionType) && isUndefined(takeLatestActionType))
-    throw new Error('Not listening to any actions is unsupported (not to mention useless...)');
+  const {
+    takeEvery: takeEveryActionType,
+    takeLatest: takeLatestActionType,
+    cancelActionType,
+    ...handlerConfig
+  } = config;
 
   let task: Task;
   const handler = createSingleEventSagaHandler(handlerConfig);
@@ -52,7 +48,6 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
   runAfterCommit: shouldRunAfterCommit = false,
   undoThreshold = 0,
   undoActionType = '_',
-  undoId = '',
   undoPayloadBuilder: buildUndoPayload = function* (args): SagaIterator { return args; },
   undoAction = () => ({ type: '_' }),
   undoOnError = true,
@@ -99,7 +94,7 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
           commit: delay(undoThreshold),
           undo: take((action: UndoAction) =>
             action.type === undoActionType &&
-            (undoId ? action.undoId === undoId : true)
+            (args.undoId ? action.undoId === args.undoId : true)
           )
         });
 

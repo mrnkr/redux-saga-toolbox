@@ -6,12 +6,11 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export interface MyAction<T> extends Action {
   payload?: T;
+  undoId?: string;
   error?: any;
 }
 
-export interface UndoAction extends Action {
-  undoId?: string;
-}
+export type UndoAction = Omit<MyAction<{}>, 'payload' | 'error'>;
 
 export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
   takeEvery?: string;
@@ -30,7 +29,6 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   undoOnError?: boolean;
   undoThreshold?: number;
   undoActionType?: string;
-  undoId?: string;
   undoAction?: (payload: TUndoPayload) => MyAction<TUndoPayload>;
   undoPayloadBuilder?: (args?: TPayload) => SagaIterator;
 
@@ -38,6 +36,8 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   afterAction?: (res: any, args?: TPayload) => SagaIterator;
 
   action: (args?: any) => any;
+
+  silent?: boolean;
 }
 
 export type SingleEventSagaHandlerConfiguration<TPayload, TResult, TUndoPayload = TPayload> =

@@ -16,7 +16,8 @@ describe('single event saga factory test', () => {
       commitAction: payload => ({ type: 'COMMIT', payload }),
       successAction: payload => ({ type: 'SUCCESS', payload }),
       errorAction: error => ({ type: 'ERROR', error }),
-      action: () => ({ data: [ 'hello', 'there' ] })
+      action: () => ({ data: [ 'hello', 'there' ] }),
+      silent: true
     };
 
     nonEmptyHandlerConfig = {
@@ -24,7 +25,8 @@ describe('single event saga factory test', () => {
       commitAction: payload => ({ type: 'COMMIT', payload }),
       successAction: payload => ({ type: 'SUCCESS', payload }),
       errorAction: error => ({ type: 'ERROR', error }),
-      action: () => ({ data: [ 'hello', 'there' ] })
+      action: () => ({ data: [ 'hello', 'there' ] }),
+      silent: true
     };
   });
 
@@ -99,19 +101,6 @@ describe('single event saga factory test', () => {
         .delay(30)
         .dispatch({ type: 'CANCEL' })
         .silentRun();
-    });
-
-    it('should throw when not provided a forking action', () => {
-      expect(() => createSingleEventSaga({ } as any))
-        .toThrow();
-    });
-
-    it('should throw when provided two forking actions', () => {
-      expect(() => createSingleEventSaga({
-        takeEvery: 'REQUEST',
-        takeLatest: 'REQUEST'
-      } as any))
-        .toThrow();
     });
 
   });
@@ -335,33 +324,31 @@ describe('single event saga factory test', () => {
         .run();
     });
 
-    it('should undo for the undoId is equal', () => {
-      const requestAction: Action = { type: 'REQUEST' };
+    it('should undo for the undoId is a match', () => {
+      const requestAction: MyAction<{}> = { type: 'REQUEST', undoId: '0462318473' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
         runAfterCommit: true,
-        undoThreshold: 120,
+        undoAction: () => ({ type: 'UNDO' }),
         undoActionType: 'REQUEST_UNDO',
-        undoId: '1577158118',
-        undoAction: () => ({ type: 'UNDO' })
+        undoThreshold: 120
       });
 
       return expectSaga(handler, requestAction)
         .delay(80)
-        .dispatch({ type: 'REQUEST_UNDO', undoId: '1577158118' })
+        .dispatch({ type: 'REQUEST_UNDO', undoId: '0462318473' })
         .put({ type: 'UNDO' })
         .not.put({ type: 'SUCCESS', payload: { data: [ 'hello', 'there' ] } })
         .run();
     });
 
     it('should not undo for the undoId is different', () => {
-      const requestAction: Action = { type: 'REQUEST' };
+      const requestAction: MyAction<{}> = { type: 'REQUEST', undoId: '0462318473' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
         runAfterCommit: true,
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
-        undoId: '1577158118',
         undoAction: () => ({ type: 'UNDO' })
       });
 

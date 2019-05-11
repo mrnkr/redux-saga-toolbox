@@ -4,24 +4,28 @@ import { composeSagas } from '../../src/sagas/compose-sagas';
 
 describe('saga composition tests', () => {
 
-  function* auth(action: { data: string }): SagaIterator {
+  type T1 = { data: string };
+  type T2 = T1 & { auth?: string };
+  type T3 = T2 & { contentType: string };
+
+  function* auth(action: T1): SagaIterator {
     return {
       ...action,
-      auth: 'It\'s a me! Mario!'
+      auth: 'It\'s a me! Mario!',
     };
   }
 
-  function* moreData(action: { data: string, auth?: string }): SagaIterator {
+  function* moreData(action: T2): SagaIterator {
     return {
       ...action,
-      data: `${action.data} and more!`
+      data: `${action.data} and more!`,
     };
   }
 
-  function* contentType(action: { data: string, auth?: string }): SagaIterator {
+  function* contentType(action: T2): SagaIterator {
     return {
       ...action,
-      contentType: 'application/json'
+      contentType: 'application/json',
     };
   }
 
@@ -37,32 +41,32 @@ describe('saga composition tests', () => {
     });
 
     it('should behave the same as doing s2(s1(a))', () => {
-      const composed = composeSagas<{ data: string }, { data: string, auth?: string }, { data: string, auth?: string }>(
-        auth, moreData
-      );
-
-      return expectSaga(composed, { data: 'We\'re clones' })
-        .returns({
-          data: 'We\'re clones and more!',
-          auth: 'It\'s a me! Mario!'
-        })
-        .run();
-    });
-
-    it('should be possible to compose with compositions', () => {
-      const comp1 = composeSagas<{ data: string }, { data: string, auth?: string }, { data: string, auth?: string }>(
-        auth, moreData
-      );
-      const composed = composeSagas<{ data: string }, { data: string, auth?: string }, { data: string, auth?: string, contentType: string }>(
-        comp1,
-        contentType
+      const composed = composeSagas<T1, T2, T2>(
+        auth, moreData,
       );
 
       return expectSaga(composed, { data: 'We\'re clones' })
         .returns({
           data: 'We\'re clones and more!',
           auth: 'It\'s a me! Mario!',
-          contentType: 'application/json'
+        })
+        .run();
+    });
+
+    it('should be possible to compose with compositions', () => {
+      const comp1 = composeSagas<T1, T2, T2>(
+        auth, moreData,
+      );
+      const composed = composeSagas<T1, T2, T3>(
+        comp1,
+        contentType,
+      );
+
+      return expectSaga(composed, { data: 'We\'re clones' })
+        .returns({
+          data: 'We\'re clones and more!',
+          auth: 'It\'s a me! Mario!',
+          contentType: 'application/json',
         })
         .run();
     });

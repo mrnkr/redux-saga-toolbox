@@ -29,7 +29,7 @@ describe('state adapter tests', () => {
     const mutator = () => {
       mock();
       return DidMutate.None;
-    }
+    };
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);
@@ -42,7 +42,7 @@ describe('state adapter tests', () => {
     const mutator = () => {
       mock();
       return DidMutate.EntitiesOnly;
-    }
+    };
     const operator = createStateOperator(mutator);
 
     const result = operator({}, state);

@@ -9,10 +9,10 @@ describe('single event saga config validation tests', () => {
     minimumValidConfiguration = {
       takeEvery: 'REQUEST',
       loadingAction: () => ({ type: 'LOADING' }),
-      commitAction: payload => ({ type: 'COMMIT', payload }),
-      successAction: payload => ({ type: 'SUCCESS', payload }),
-      errorAction: error => ({ type: 'ERROR', error }),
-      action: () => ({ data: [ 'hello', 'there' ] }),
+      commitAction: payload => ({ payload, type: 'COMMIT' }),
+      successAction: payload => ({ payload, type: 'SUCCESS' }),
+      errorAction: error => ({ error, type: 'ERROR' }),
+      action: () => ({ data: ['hello', 'there'] }),
     };
   });
 
@@ -87,26 +87,39 @@ describe('single event saga config validation tests', () => {
         .toThrow();
     });
 
-    it('should print a warning when provided with an undo action but the threshold is too small', () => {
-      const config = { ...minimumValidConfiguration, runAfterCommit: true, undoActionType: 'UNDO', undoThreshold: 100 };
+    it('should warn when provided with an undo action but threshold is too small', () => {
+      const config = {
+        ...minimumValidConfiguration,
+        runAfterCommit: true,
+        undoActionType: 'UNDO',
+        undoThreshold: 100,
+      };
 
       assertValidConfig(config);
       expect(console.warn)
-        .toHaveBeenCalledWith('An undo action is provided but the user is being given too little time to undo!');
+        .toHaveBeenCalledWith(
+          'An undo action is provided but the user is being given too little time to undo!',
+        );
     });
 
-    it('should print a warning when provided with an undo action but the action runs before committing', () => {
+    it('should warn when provided with an undo action but action runs before committing', () => {
       const config = { ...minimumValidConfiguration, undoActionType: 'UNDO', undoThreshold: 5000 };
 
       assertValidConfig(config);
       expect(console.warn)
-        .toHaveBeenCalledWith('Running before commit does not allow for undoing actions');
+        .toHaveBeenCalledWith(
+          'Running before commit does not allow for undoing actions',
+        );
     });
 
     it('should not print warnings when config is set to silent', () => {
-      const config = { ...minimumValidConfiguration, undoActionType: 'UNDO', undoThreshold: 5000, silent: true };
+      const config = {
+        ...minimumValidConfiguration,
+        undoActionType: 'UNDO',
+        undoThreshold: 5000,
+        silent: true,
+      };
 
-      console.log(JSON.stringify(config, null, 2));
       assertValidConfig(config);
       expect(console.warn).not.toHaveBeenCalled();
     });

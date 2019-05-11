@@ -1,15 +1,30 @@
+import {
+  cancel,
+  takeEvery,
+  takeLatest,
+  put,
+  race,
+  call,
+  delay,
+  cancelled,
+  take,
+} from 'redux-saga/effects';
+
+import {
+  Omit,
+  MyAction,
+  SingleEventSagaConfiguration,
+  SingleEventSagaHandlerConfiguration,
+  UndoAction,
+} from './typings';
+
 import { SagaIterator, Task } from 'redux-saga';
-import { cancel, takeEvery, takeLatest, put, race, call, delay, cancelled, take } from 'redux-saga/effects';
 import { assertValidConfig } from './validation';
-import { Omit, MyAction, SingleEventSagaConfiguration, SingleEventSagaHandlerConfiguration, UndoAction } from './typings';
+import { MAX_TIMEOUT } from './vars';
 
-const ONE_SECOND = 1000;
-const ONE_MINUTE = 60 * ONE_SECOND;
-const ONE_HOUR = 60 * ONE_MINUTE;
-
-const MAX_TIMEOUT = ONE_HOUR;
-
-export function createSingleEventSaga<TPayload, TResult>(config: SingleEventSagaConfiguration<TPayload, TResult>) {
+export function createSingleEventSaga<TPayload, TResult>(
+  config: SingleEventSagaConfiguration<TPayload, TResult>,
+) {
   assertValidConfig(config);
 
   const {
@@ -27,18 +42,22 @@ export function createSingleEventSaga<TPayload, TResult>(config: SingleEventSaga
   }
 
   return function* watcher(): SagaIterator {
-    if (takeEveryActionType)
+    if (takeEveryActionType) {
       task = yield takeEvery(takeEveryActionType, handler);
+    }
 
-    if (takeLatestActionType)
+    if (takeLatestActionType) {
       task = yield takeLatest(takeLatestActionType, handler);
+    }
 
-    if (cancelActionType)
+    if (cancelActionType) {
       yield takeLatest(cancelActionType, cancelSaga);
-  }
+    }
+  };
 }
 
-export function createSingleEventSagaHandler<TPayload, TResult, TAction extends MyAction<TPayload>>({
+export function createSingleEventSagaHandler
+<TPayload, TResult, TAction extends MyAction<TPayload>>({
   loadingAction,
   beforeAction = function* (args): SagaIterator { return args; },
   action,
@@ -53,29 +72,33 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
   undoOnError = true,
   commitAction,
   successAction,
-  errorAction
+  errorAction,
 }: SingleEventSagaHandlerConfiguration<TPayload, TResult>) {
+  let retryCount = retry;
+
   function* runAction(args: Omit<TAction, 'type'>): SagaIterator {
     try {
       const processedArgs = yield* beforeAction(args.payload);
 
       const { result, timeout } = yield race({
         result: call(action, processedArgs),
-        timeout: delay(to)
+        timeout: delay(to),
       });
 
-      if (timeout)
-        throw new Error('Action timed out');
+      if (timeout) {
+        throw Error('Action timed out');
+      }
 
       const processedResult: TResult = yield* afterAction(result, args.payload);
 
       return processedResult;
     } catch (err) {
-      if (retry > 0) {
-        retry--;
+      if (retryCount > 0) {
+        retryCount = retryCount - 1;
         yield* runAction(args);
-      } else
+      } else {
         throw err;
+      }
     }
   }
 
@@ -94,12 +117,13 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
           commit: delay(undoThreshold),
           undo: take((action: UndoAction) =>
             action.type === undoActionType &&
-            (args.undoId ? action.undoId === args.undoId : true)
-          )
+            (args.undoId ? action.undoId === args.undoId : true),
+          ),
         });
 
-        if (undo)
+        if (undo) {
           yield put(undoAction(undoPayload));
+        }
 
         if (commit) {
           result = yield* runAction(args);
@@ -114,15 +138,16 @@ export function createSingleEventSagaHandler<TPayload, TResult, TAction extends 
       }
     } catch (err) {
       yield put(errorAction(err));
-      if (undoOnError)
+      if (undoOnError) {
         yield put(undoAction(undoPayload!));
+      }
     } finally {
       if (yield cancelled()) {
-        yield put(errorAction(new Error('Action cancelled')));
-        if (undoOnError)
+        yield put(errorAction(Error('Action cancelled')));
+        if (undoOnError) {
           yield put(undoAction(undoPayload!));
+        }
       }
-
     }
-  }
+  };
 }

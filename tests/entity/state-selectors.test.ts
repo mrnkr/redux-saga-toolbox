@@ -14,14 +14,14 @@ describe('state selectors tests', () => {
   beforeAll(() => {
     selectors = createSelectorsFactory<TestItem>().getSelectors();
     state = {
-      ids: [ '1', '2', '3', '4', '5'],
+      ids: ['1', '2', '3', '4', '5'],
       entities: {
         ['1']: { id: '1', name: 'Potato Jr' },
         ['2']: { id: '2', name: 'Potato Sr' },
         ['3']: { id: '3', name: 'Apple' },
         ['4']: { id: '4', name: 'Banana' },
-        ['5']: { id: '5', name: 'General Kenobi' }
-      }
+        ['5']: { id: '5', name: 'General Kenobi' },
+      },
     };
   });
 

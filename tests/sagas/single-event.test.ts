@@ -7,26 +7,27 @@ import { SingleEventSagaHandlerConfiguration, MyAction } from '../../src/sagas/t
 
 describe('single event saga factory test', () => {
 
+  type T1 = { data: string };
   let emptyHandlerConfig: SingleEventSagaHandlerConfiguration<{}, string[]>;
-  let nonEmptyHandlerConfig: SingleEventSagaHandlerConfiguration<{ data: string }, string[]>;
+  let nonEmptyHandlerConfig: SingleEventSagaHandlerConfiguration<T1, string[]>;
 
   beforeAll(() => {
     emptyHandlerConfig = {
       loadingAction: () => ({ type: 'LOADING' }),
-      commitAction: payload => ({ type: 'COMMIT', payload }),
-      successAction: payload => ({ type: 'SUCCESS', payload }),
-      errorAction: error => ({ type: 'ERROR', error }),
-      action: () => ({ data: [ 'hello', 'there' ] }),
-      silent: true
+      commitAction: payload => ({ payload, type: 'COMMIT' }),
+      successAction: payload => ({ payload, type: 'SUCCESS' }),
+      errorAction: error => ({ error, type: 'ERROR' }),
+      action: () => ({ data: ['hello', 'there'] }),
+      silent: true,
     };
 
     nonEmptyHandlerConfig = {
       loadingAction: () => ({ type: 'LOADING' }),
-      commitAction: payload => ({ type: 'COMMIT', payload }),
-      successAction: payload => ({ type: 'SUCCESS', payload }),
-      errorAction: error => ({ type: 'ERROR', error }),
-      action: () => ({ data: [ 'hello', 'there' ] }),
-      silent: true
+      commitAction: payload => ({ payload, type: 'COMMIT' }),
+      successAction: payload => ({ payload, type: 'SUCCESS' }),
+      errorAction: error => ({ error, type: 'ERROR' }),
+      action: () => ({ data: ['hello', 'there'] }),
+      silent: true,
     };
   });
 
@@ -39,7 +40,7 @@ describe('single event saga factory test', () => {
     it('should dispatch the forking action', () => {
       const watcher = createSingleEventSaga({
         takeEvery: 'REQUEST',
-        ...emptyHandlerConfig
+        ...emptyHandlerConfig,
       });
 
       const expectedFirstActionInForkedSaga = { type: 'LOADING' };
@@ -54,8 +55,8 @@ describe('single event saga factory test', () => {
       const watcher = createSingleEventSaga({
         takeLatest: 'REQUEST',
         ...emptyHandlerConfig,
-        action: () => new Promise((resolve) => setTimeout(() => resolve(), 50)),
-        cancelActionType: 'CANCEL'
+        action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
+        cancelActionType: 'CANCEL',
       });
 
       return expectSaga(watcher)
@@ -70,9 +71,9 @@ describe('single event saga factory test', () => {
       const watcher = createSingleEventSaga({
         takeLatest: 'REQUEST',
         ...emptyHandlerConfig,
-        action: () => new Promise((resolve) => setTimeout(() => resolve(), 50)),
+        action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
         cancelActionType: 'CANCEL',
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(watcher)
@@ -88,10 +89,10 @@ describe('single event saga factory test', () => {
       const watcher = createSingleEventSaga({
         takeLatest: 'REQUEST',
         ...emptyHandlerConfig,
-        action: () => new Promise((resolve) => setTimeout(() => resolve(), 50)),
+        action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
         cancelActionType: 'CANCEL',
         undoOnError: false,
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(watcher)
@@ -109,12 +110,12 @@ describe('single event saga factory test', () => {
 
     it('should have the following behavior in normal cases', () => {
       const requestAction: Action = { type: 'REQUEST' };
-      const fakeData = { data: [ 'hello', 'there' ] };
+      const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler(emptyHandlerConfig);
 
       return expectSaga(handler, requestAction)
         .provide([
-          [ call(emptyHandlerConfig.action, null), fakeData ]
+          [call(emptyHandlerConfig.action, null), fakeData],
         ])
         .put({ type: 'LOADING' })
         .put({ type: 'COMMIT', payload: fakeData })
@@ -123,11 +124,11 @@ describe('single event saga factory test', () => {
     });
 
     it('should commit args when running after commit', () => {
-      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
-      const fakeData = { data: [ 'hello', 'there' ] };
+      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        runAfterCommit: true
+        runAfterCommit: true,
       });
 
       return expectSaga(handler, requestAction)
@@ -138,8 +139,8 @@ describe('single event saga factory test', () => {
     });
 
     it('should call the action with the action\'s payload as args', () => {
-      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
-      const fakeData = { data: [ 'hello', 'there' ] };
+      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
       });
@@ -153,13 +154,13 @@ describe('single event saga factory test', () => {
     });
 
     it('should process arguments before running the action', () => {
-      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        beforeAction: function* (args): SagaIterator {
+        *beforeAction (args): SagaIterator {
           yield put({ type: 'PROCESSING_ARGS', payload: { ...args } });
           return { data: 'We fight, we win!' };
-        }
+        },
       });
 
       return expectSaga(handler, requestAction)
@@ -169,36 +170,36 @@ describe('single event saga factory test', () => {
     });
 
     it('should process result after running the action', () => {
-      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
-      const fakeData = { data: [ 'hello', 'there' ] };
+      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        afterAction: function* (res): SagaIterator {
+        *afterAction (res): SagaIterator {
           yield put({ type: 'PROCESSING_RESULT', payload: { ...res } });
-          return { data: [ 'general', 'kenobi' ] };
-        }
+          return { data: ['general', 'kenobi'] };
+        },
       });
 
       return expectSaga(handler, requestAction)
         .put({ type: 'PROCESSING_RESULT', payload: fakeData })
-        .put({ type: 'COMMIT', payload: { data: [ 'general', 'kenobi' ] } })
+        .put({ type: 'COMMIT', payload: { data: ['general', 'kenobi'] } })
         .run();
     });
 
     it('should allow processing result using args as parameter after running action', () => {
-      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
-      const fakeData = { data: [ 'hello', 'there' ] };
+      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        afterAction: function* (res, args): SagaIterator {
+        *afterAction (res, args): SagaIterator {
           yield put({ type: 'PROCESSING_RESULT', payload: { res, args } });
-          return { data: [ 'general', 'kenobi' ] };
-        }
+          return { data: ['general', 'kenobi'] };
+        },
       });
 
       return expectSaga(handler, requestAction)
         .put({ type: 'PROCESSING_RESULT', payload: { res: fakeData, args: requestAction.payload } })
-        .put({ type: 'COMMIT', payload: { data: [ 'general', 'kenobi' ] } })
+        .put({ type: 'COMMIT', payload: { data: ['general', 'kenobi'] } })
         .run();
     });
 
@@ -210,14 +211,14 @@ describe('single event saga factory test', () => {
         action: () => {
           return new Promise((resolve, reject) => {
             if (retryCount > 0) {
-              retryCount--;
+              retryCount = retryCount - 1;
               reject(new Error('Hehe'));
             } else {
               resolve();
             }
           });
         },
-        retry: 3
+        retry: 3,
       });
 
       return expectSaga(handler, requestAction)
@@ -232,7 +233,7 @@ describe('single event saga factory test', () => {
         runAfterCommit: true,
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
@@ -250,7 +251,7 @@ describe('single event saga factory test', () => {
         runAfterCommit: true,
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
@@ -266,7 +267,7 @@ describe('single event saga factory test', () => {
         runAfterCommit: true,
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
@@ -278,14 +279,14 @@ describe('single event saga factory test', () => {
     });
 
     it('should process the undo payload after loading', () => {
-      const requestAction: MyAction<{ data: string }> = { type: 'REQUEST', payload: { data: 'Hello' } };
+      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'Hello' } };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
         runAfterCommit: true,
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
-        undoAction: (payload) => ({ type: 'UNDO', payload }),
-        undoPayloadBuilder: function* (): SagaIterator { return { data: 'Bye' } }
+        undoAction: payload => ({ payload, type: 'UNDO' }),
+        *undoPayloadBuilder (): SagaIterator { return { data: 'Bye' }; },
       });
 
       return expectSaga(handler, requestAction)
@@ -299,8 +300,8 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => { throw new Error('Harry Potter is dead!') },
-        undoAction: () => ({ type: 'UNDO' })
+        action: () => { throw new Error('Harry Potter is dead!'); },
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
@@ -313,9 +314,9 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => { throw new Error('Harry Potter is dead!') },
+        action: () => { throw new Error('Harry Potter is dead!'); },
         undoOnError: false,
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
@@ -331,14 +332,14 @@ describe('single event saga factory test', () => {
         runAfterCommit: true,
         undoAction: () => ({ type: 'UNDO' }),
         undoActionType: 'REQUEST_UNDO',
-        undoThreshold: 120
+        undoThreshold: 120,
       });
 
       return expectSaga(handler, requestAction)
         .delay(80)
         .dispatch({ type: 'REQUEST_UNDO', undoId: '0462318473' })
         .put({ type: 'UNDO' })
-        .not.put({ type: 'SUCCESS', payload: { data: [ 'hello', 'there' ] } })
+        .not.put({ type: 'SUCCESS', payload: { data: ['hello', 'there'] } })
         .run();
     });
 
@@ -349,14 +350,14 @@ describe('single event saga factory test', () => {
         runAfterCommit: true,
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
-        undoAction: () => ({ type: 'UNDO' })
+        undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
         .delay(80)
         .dispatch({ type: 'REQUEST_UNDO', undoId: '3783787042' })
         .not.put({ type: 'UNDO' })
-        .put({ type: 'SUCCESS', payload: { data: [ 'hello', 'there' ] } })
+        .put({ type: 'SUCCESS', payload: { data: ['hello', 'there'] } })
         .run();
     });
 
@@ -368,14 +369,14 @@ describe('single event saga factory test', () => {
         action: () => {
           return new Promise((resolve, reject) => {
             if (retryCount > 0) {
-              retryCount--;
+              retryCount = retryCount - 1;
               reject(new Error('Hehe'));
             } else {
               resolve();
             }
           });
         },
-        retry: 3
+        retry: 3,
       });
 
       return expectSaga(handler, requestAction)
@@ -387,8 +388,8 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => new Promise((resolve) => setTimeout(() => resolve(), 130)),
-        timeout: 100
+        action: () => new Promise(resolve => setTimeout(() => resolve(), 130)),
+        timeout: 100,
       });
 
       return expectSaga(handler, requestAction)
@@ -402,7 +403,7 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => { throw new Error('Harry Potter is dead!') }
+        action: () => { throw new Error('Harry Potter is dead!'); },
       });
 
       return expectSaga(handler, requestAction)
@@ -413,4 +414,4 @@ describe('single event saga factory test', () => {
 
   });
 
-})
+});

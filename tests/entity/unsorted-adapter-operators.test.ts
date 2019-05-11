@@ -12,14 +12,14 @@ describe('unsorted entity adapter operator tests', () => {
   beforeAll(() => {
     adapter = createUnsortedEntityAdapter<TestItem>(e => e.id);
     state = {
-      ids: [ '1', '2', '3', '4', '5'],
+      ids: ['1', '2', '3', '4', '5'],
       entities: {
         ['1']: { id: '1', name: 'Potato Jr' },
         ['2']: { id: '2', name: 'Potato Sr' },
         ['3']: { id: '3', name: 'Apple' },
         ['4']: { id: '4', name: 'Banana' },
-        ['5']: { id: '5', name: 'General Kenobi' }
-      }
+        ['5']: { id: '5', name: 'General Kenobi' },
+      },
     };
   });
 
@@ -35,8 +35,8 @@ describe('unsorted entity adapter operator tests', () => {
       const result = adapter.addOne(entity, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids, '6' ],
-        entities: { ...state.entities, ['6']: entity }
+        ids: [...state.ids, '6'],
+        entities: { ...state.entities, ['6']: entity },
       });
     });
 
@@ -53,36 +53,42 @@ describe('unsorted entity adapter operator tests', () => {
   describe('addMany tests', () => {
 
     it('should add all new entities in the array', () => {
-      const entities: TestItem[] = [ { id: '6', name: 'Master Windu' }, { id: '7', name: 'El gordo de la colombe' } ];
+      const entities: TestItem[] = [
+        { id: '6', name: 'Master Windu' },
+        { id: '7', name: 'El gordo de la colombe' },
+      ];
 
       const result = adapter.addMany(entities, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids, ...entities.map(e => e.id) ],
+        ids: [...state.ids, ...entities.map(e => e.id)],
         entities: {
           ...state.entities,
           [entities[0].id]: entities[0],
-          [entities[1].id]: entities[1]
-        }
+          [entities[1].id]: entities[1],
+        },
       });
     });
 
     it('should add the entity that is not repeated', () => {
-      const entities: TestItem[] = [ { id: '1', name: 'Potato Jr' }, { id: '6', name: 'Gordo de la colombe' } ];
+      const entities: TestItem[] = [
+        { id: '1', name: 'Potato Jr' },
+        { id: '6', name: 'Gordo de la colombe' },
+      ];
 
       const result = adapter.addMany(entities, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids, '6' ],
+        ids: [...state.ids, '6'],
         entities: {
           ...state.entities,
-          [entities[1].id]: entities[1]
-        }
+          [entities[1].id]: entities[1],
+        },
       });
     });
 
     it('should not add any entities', () => {
-      const entities: TestItem[] = [ { id: '1', name: 'Potato Jr' }, { id: '2', name: 'Potato Sr' } ];
+      const entities: TestItem[] = [{ id: '1', name: 'Potato Jr' }, { id: '2', name: 'Potato Sr' }];
 
       const result = adapter.addMany(entities, state);
 
@@ -94,13 +100,13 @@ describe('unsorted entity adapter operator tests', () => {
   describe('addAll tests', () => {
 
     it('should add all entities and remove previous ones', () => {
-      const entities: TestItem[] = [ { id: '2', name: 'Apple' }, { id: '3', name: 'Banana' } ];
+      const entities: TestItem[] = [{ id: '2', name: 'Apple' }, { id: '3', name: 'Banana' }];
 
       const result = adapter.addAll(entities, state);
 
       expect(result).toEqual({
         ids: entities.map(e => e.id),
-        entities: { [entities[0].id]: entities[0], [entities[1].id]: entities[1] }
+        entities: { [entities[0].id]: entities[0], [entities[1].id]: entities[1] },
       });
     });
 
@@ -122,8 +128,8 @@ describe('unsorted entity adapter operator tests', () => {
       const result = adapter.removeOne(keyToDelete, state);
 
       expect(result).toEqual({
-        ids: [ '2', '3', '4', '5' ],
-        entities: omit(state.entities, [ keyToDelete ])
+        ids: ['2', '3', '4', '5'],
+        entities: omit(state.entities, [keyToDelete]),
       });
     });
 
@@ -140,13 +146,13 @@ describe('unsorted entity adapter operator tests', () => {
   describe('removeMany tests', () => {
 
     it('should remove all items whose keys are in the passed array', () => {
-      const keysToDelete = [ '2', '3' ];
+      const keysToDelete = ['2', '3'];
 
       const result = adapter.removeMany(keysToDelete, state);
 
       expect(result).toEqual({
-        ids: [ '1', '4', '5' ],
-        entities: omit(state.entities, keysToDelete)
+        ids: ['1', '4', '5'],
+        entities: omit(state.entities, keysToDelete),
       });
     });
 
@@ -156,13 +162,13 @@ describe('unsorted entity adapter operator tests', () => {
       const result = adapter.removeMany(predicate, state);
 
       expect(result).toEqual({
-        ids: [ '3', '4', '5' ],
-        entities: omitBy(state.entities, predicate)
+        ids: ['3', '4', '5'],
+        entities: omitBy(state.entities, predicate),
       });
-    })
+    });
 
     it('should not remove anything', () => {
-      const keysToDelete = [ '7', '21' ];
+      const keysToDelete = ['7', '21'];
 
       const result = adapter.removeMany(keysToDelete, state);
 
@@ -197,11 +203,11 @@ describe('unsorted entity adapter operator tests', () => {
       const result = adapter.updateOne(update, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids ],
+        ids: [...state.ids],
         entities: {
           ...state.entities,
           ['2']: { id: '2', name: 'John Sena' },
-        }
+        },
       });
     });
 
@@ -213,9 +219,9 @@ describe('unsorted entity adapter operator tests', () => {
       expect(result).toEqual({
         ids: state.ids.map(id => id === '2' ? '7' : id),
         entities: {
-          ...omit(state.entities, [ '2' ]),
-          ['7']: { id: '7', name: 'John Sena' }
-        }
+          ...omit(state.entities, ['2']),
+          ['7']: { id: '7', name: 'John Sena' },
+        },
       });
     });
 
@@ -234,17 +240,17 @@ describe('unsorted entity adapter operator tests', () => {
     it('should change name of existing item and disregard the non existent one', () => {
       const updates: Update<TestItem>[] = [
         { id: '2', changes: { name: 'John Sena' } },
-        { id: '7', changes: { name: 'Peñarol Inteligencia' } }
+        { id: '7', changes: { name: 'Peñarol Inteligencia' } },
       ];
 
       const result = adapter.updateMany(updates, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids ],
+        ids: [...state.ids],
         entities: {
           ...state.entities,
-          ['2']: { id: '2', name: 'John Sena' }
-        }
+          ['2']: { id: '2', name: 'John Sena' },
+        },
       });
     });
 
@@ -258,15 +264,15 @@ describe('unsorted entity adapter operator tests', () => {
       expect(result).toEqual({
         ids: state.ids.map(id => id === '2' ? '7' : id),
         entities: {
-          ...omit(state.entities, [ '2' ]),
-          ['7']: { id: '7', name: 'John Sena' }
-        }
+          ...omit(state.entities, ['2']),
+          ['7']: { id: '7', name: 'John Sena' },
+        },
       });
     });
 
     it('should not change a thing', () => {
       const updates: Update<TestItem>[] = [
-        { id: '7', changes: { name: 'Peñarol Inteligencia' } }
+        { id: '7', changes: { name: 'Peñarol Inteligencia' } },
       ];
 
       const result = adapter.updateMany(updates, state);
@@ -284,11 +290,11 @@ describe('unsorted entity adapter operator tests', () => {
       const result = adapter.upsertOne(update, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids, '7' ],
+        ids: [...state.ids, '7'],
         entities: {
           ...state.entities,
-          ['7']: { id: '7', name: 'Peñarol Inteligencia' }
-        }
+          ['7']: { id: '7', name: 'Peñarol Inteligencia' },
+        },
       });
     });
 
@@ -298,11 +304,11 @@ describe('unsorted entity adapter operator tests', () => {
       const result = adapter.upsertOne(update, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids ],
+        ids: [...state.ids],
         entities: {
           ...state.entities,
-          ['2']: { id: '2', name: 'John Sena' }
-        }
+          ['2']: { id: '2', name: 'John Sena' },
+        },
       });
     });
 
@@ -313,50 +319,50 @@ describe('unsorted entity adapter operator tests', () => {
     it('should change name of existing item and insert the non existent one', () => {
       const updates: TestItem[] = [
         { id: '2', name: 'John Sena' },
-        { id: '7', name: 'Peñarol Inteligencia' }
+        { id: '7', name: 'Peñarol Inteligencia' },
       ];
 
       const result = adapter.upsertMany(updates, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids, '7' ],
+        ids: [...state.ids, '7'],
         entities: {
           ...state.entities,
           ['2']: { id: '2', name: 'John Sena' },
-          ['7']: { id: '7', name: 'Peñarol Inteligencia' }
-        }
+          ['7']: { id: '7', name: 'Peñarol Inteligencia' },
+        },
       });
     });
 
     it('should insert the non existent item', () => {
       const updates: TestItem[] = [
-        { id: '7', name: 'Peñarol Inteligencia' }
+        { id: '7', name: 'Peñarol Inteligencia' },
       ];
 
       const result = adapter.upsertMany(updates, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids, '7' ],
+        ids: [...state.ids, '7'],
         entities: {
           ...state.entities,
-          ['7']: { id: '7', name: 'Peñarol Inteligencia' }
-        }
+          ['7']: { id: '7', name: 'Peñarol Inteligencia' },
+        },
       });
     });
 
     it('should change name of existing item', () => {
       const updates: TestItem[] = [
-        { id: '2', name: 'John Sena' }
+        { id: '2', name: 'John Sena' },
       ];
 
       const result = adapter.upsertMany(updates, state);
 
       expect(result).toEqual({
-        ids: [ ...state.ids ],
+        ids: [...state.ids],
         entities: {
           ...state.entities,
-          ['2']: { id: '2', name: 'John Sena' }
-        }
+          ['2']: { id: '2', name: 'John Sena' },
+        },
       });
     });
 
@@ -377,7 +383,12 @@ describe('unsorted entity adapter operator tests', () => {
 
       const result = adapter.map(predicate, state);
 
-      expect(result.ids.map(id => result.entities[id].name).every(name => name === 'Peñarol')).toBeTruthy();
+      expect(
+        result
+          .ids
+          .map(id => result.entities[id].name)
+          .every(name => name === 'Peñarol'),
+      ).toBeTruthy();
     });
 
   });

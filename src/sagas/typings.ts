@@ -1,13 +1,13 @@
+import { Observable } from '@mrnkr/promise-queue';
 import { Action } from 'redux';
 import { SagaIterator } from 'redux-saga';
-import { Effect } from 'redux-saga/effects';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-export interface MyAction<T> extends Action {
-  payload?: T;
+export interface MyAction<TPayload> extends Action {
+  payload?: TPayload;
   undoId?: string;
-  error?: any;
+  error?: Error;
 }
 
 export type UndoAction = Omit<MyAction<{}>, 'payload' | 'error'>;
@@ -20,7 +20,7 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   loadingAction: () => Action;
   commitAction: (payload: TResult | TPayload) => MyAction<TPayload | TResult>;
   successAction: (payload?: TResult) => MyAction<TResult>;
-  errorAction: (err: any) => MyAction<TPayload>;
+  errorAction: (err: Error) => MyAction<{}>;
 
   runAfterCommit?: boolean;
   timeout?: number;
@@ -41,4 +41,22 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
 }
 
 export type SingleEventSagaHandlerConfiguration<TPayload, TResult, TUndoPayload = TPayload> =
-  Omit<SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload>, 'takeEvery' | 'takeLatest' | 'cancelActionType'>
+  Omit<
+    SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload>,
+    'takeEvery' | 'takeLatest' | 'cancelActionType'
+  >;
+
+export interface ObservableSagaConfiguration<TResult> {
+  subscribe: string;
+  cancelActionType?: string;
+
+  observable: Observable<TResult>;
+  nextAction: (payload: TResult) => MyAction<TResult>;
+  doneAction: () => Action;
+  errorAction: (err: Error) => MyAction<{}>;
+
+  timeout?: number;
+}
+
+export type ObservableSagaHandlerConfiguration<TResult> =
+  Omit<ObservableSagaConfiguration<TResult>, 'subscribe' | 'cancelActionType'>;

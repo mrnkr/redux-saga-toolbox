@@ -125,6 +125,25 @@ describe('observable saga tests', () => {
         .silentRun();
     });
 
+    it('should be able to run after having been cancelled', () => {
+      const watcher = createObservableSaga({
+        subscribe: 'SUBSCRIBE',
+        cancelActionType: 'CANCEL',
+        ...happyHandlerConfig,
+      });
+
+      return expectSaga(watcher)
+        .dispatch({ type: 'SUBSCRIBE' })
+        .delay(4)
+        .dispatch({ type: 'CANCEL' })
+        .delay(8)
+        .dispatch({ type: 'SUBSCRIBE' })
+        .put({ type: 'ERROR', error: Error('Action cancelled') })
+        .put({ type: 'NEXT', payload: 8 })
+        .put({ type: 'DONE' })
+        .silentRun();
+    });
+
   });
 
   describe('createObservableSagaHandler tests', () => {

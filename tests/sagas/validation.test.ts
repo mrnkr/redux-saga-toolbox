@@ -40,13 +40,6 @@ describe('single event saga config validation tests', () => {
         .toThrow();
     });
 
-    it('should throw when provided with two forking actions', () => {
-      const config = { ...minimumValidConfiguration, takeLatest: 'REQUEST' };
-
-      expect(() => assertValidConfig(config))
-        .toThrow();
-    });
-
     it('should throw when not provided with a loading action', () => {
       const config = { ...minimumValidConfiguration };
       delete config.loadingAction;

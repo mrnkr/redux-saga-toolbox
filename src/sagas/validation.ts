@@ -7,7 +7,7 @@ const isDefined = negate(isUndefined);
 export function assertValidConfig<TPayload, TResult>(
   config: SingleEventSagaConfiguration<TPayload, TResult>,
 ): void {
-  assertSingleForkingAction(config);
+  assertForkingAction(config);
   assertMinimumRequiredHandlerConfiguration(config);
 
   if (!config.silent) {
@@ -16,16 +16,11 @@ export function assertValidConfig<TPayload, TResult>(
   }
 }
 
-function assertSingleForkingAction<TPayload, TResult>({
+function assertForkingAction<TPayload, TResult>({
   takeEvery,
-  takeLatest,
 }: SingleEventSagaConfiguration<TPayload, TResult>): void {
-  if (isDefined(takeEvery) && isDefined(takeLatest)) {
-    throw Error('Using takeEvery and takeLatest in the same watcher is not possible');
-  }
-
-  if (isUndefined(takeEvery) && isUndefined(takeLatest)) {
-    throw Error('Not listening to any actions is unsupported (not to mention useless...)');
+  if (!isDefined(takeEvery)) {
+    throw Error('A forking action is required');
   }
 }
 

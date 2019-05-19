@@ -4,7 +4,8 @@
   "description": "Tools to make redux saga users more productive than before",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
+    "do-publish": "yarn build && yarn publish --access=public",
     "test": "jest",
     "fix-deps": "yarn remove redux redux-saga && yarn add redux redux-saga -P",
     "update-promise-queue": "yarn remove @mrnkr/promise-queue && yarn add @mrnkr/promise-queue && yarn fix-deps"
@@ -20,7 +21,7 @@
   "author": "Mr.NKR",
   "license": "MIT",
   "dependencies": {
-    "@mrnkr/promise-queue": "^1.0.3",
+    "@mrnkr/promise-queue": "^1.1.0",
     "lodash": "^4.17.11"
   },
   "devDependencies": {

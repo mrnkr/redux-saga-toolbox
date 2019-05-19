@@ -4,7 +4,7 @@ import { SagaIterator } from 'redux-saga';
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-export interface MyAction<TPayload> extends Action {
+export interface MyAction<TPayload, TError extends Error = Error> extends Action {
   payload?: TPayload;
   undoId?: string;
   error?: Error;
@@ -13,14 +13,13 @@ export interface MyAction<TPayload> extends Action {
 export type UndoAction = Omit<MyAction<{}>, 'payload' | 'error'>;
 
 export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
-  takeEvery?: string;
-  takeLatest?: string;
+  takeEvery: string;
   cancelActionType?: string;
 
   loadingAction: () => Action;
   commitAction: (payload: TResult | TPayload) => MyAction<TPayload | TResult>;
   successAction: (payload?: TResult) => MyAction<TResult>;
-  errorAction: (err: Error) => MyAction<{}>;
+  errorAction: <TError extends Error>(err: TError) => MyAction<{}, TError>;
 
   runAfterCommit?: boolean;
   timeout?: number;
@@ -43,7 +42,7 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
 export type SingleEventSagaHandlerConfiguration<TPayload, TResult, TUndoPayload = TPayload> =
   Omit<
     SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload>,
-    'takeEvery' | 'takeLatest' | 'cancelActionType'
+    'takeEvery' | 'cancelActionType'
   >;
 
 export interface ObservableSagaConfiguration<TResult> {
@@ -53,7 +52,7 @@ export interface ObservableSagaConfiguration<TResult> {
   observable: Observable<TResult>;
   nextAction: (payload: TResult) => MyAction<TResult>;
   doneAction: () => Action;
-  errorAction: (err: Error) => MyAction<{}>;
+  errorAction: <TError extends Error>(err: TError) => MyAction<{}, TError>;
 
   timeout?: number;
 }

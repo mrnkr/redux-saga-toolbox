@@ -1,13 +1,13 @@
 import {
   cancel,
-  takeEvery,
-  takeLatest,
+  take,
+  spawn,
+  fork,
   put,
   race,
   call,
   delay,
   cancelled,
-  take,
 } from 'redux-saga/effects';
 
 import {
@@ -18,40 +18,36 @@ import {
   UndoAction,
 } from './typings';
 
-import { SagaIterator, Task } from 'redux-saga';
+import { SagaIterator } from 'redux-saga';
 import { assertValidConfig } from './validation';
 import { MAX_TIMEOUT } from './vars';
 
-export function createSingleEventSaga<TPayload, TResult>(
+export function createSingleEventSaga<TPayload, TResult, TAction extends MyAction<TPayload>>(
   config: SingleEventSagaConfiguration<TPayload, TResult>,
 ) {
   assertValidConfig(config);
 
   const {
-    takeEvery: takeEveryActionType,
-    takeLatest: takeLatestActionType,
+    takeEvery: takeActionType,
     cancelActionType,
     ...handlerConfig
   } = config;
 
-  let task: Task;
-  const handler = createSingleEventSagaHandler(handlerConfig);
+  function* subscription(action: TAction): SagaIterator {
+    const handler = createSingleEventSagaHandler(handlerConfig);
+    const task = yield fork(handler, action);
 
-  function* cancelSaga() {
-    yield cancel(task);
+    if (cancelActionType) {
+      yield take(cancelActionType);
+      yield cancel(task);
+    }
   }
 
   return function* watcher(): SagaIterator {
-    if (takeEveryActionType) {
-      task = yield takeEvery(takeEveryActionType, handler);
-    }
-
-    if (takeLatestActionType) {
-      task = yield takeLatest(takeLatestActionType, handler);
-    }
-
-    if (cancelActionType) {
-      yield takeLatest(cancelActionType, cancelSaga);
+    /* istanbul ignore next */
+    while (true) {
+      const action = yield take(takeActionType);
+      yield spawn(subscription, action);
     }
   };
 }

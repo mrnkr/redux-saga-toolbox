@@ -1,29 +1,31 @@
-import { Comparer, EntityMap, EntityState, EntityStateAdapter, IdSelector, Update } from "./models";
-import { createStateOperator, DidMutate } from "./state-adapter";
-import { createUnsortedEntityAdapter } from "./unsorted-entity-adapter";
-import { selectIdValue } from "./utils";
+import { Comparer, EntityMap, EntityState, EntityStateAdapter, IdSelector, Update } from './models';
+import { createStateOperator, DidMutate } from './state-adapter';
+import { createUnsortedEntityAdapter } from './unsorted-entity-adapter';
+import { selectIdValue } from './utils';
 
-export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comparer<T>): EntityStateAdapter<T> {
+export function createSortedEntityAdapter<T>(
+  selectId: IdSelector<T>, sort: Comparer<T>,
+): EntityStateAdapter<T> {
 
   type R = EntityState<T>;
 
   const { removeOne, removeMany, removeAll } = createUnsortedEntityAdapter(selectId);
 
   function addOneMutator(entity: T, state: R): DidMutate {
-    return addManyMutator([ entity ], state);
+    return addManyMutator([entity], state);
   }
 
   function addManyMutator(entities: T[], state: R): DidMutate {
     const models = entities.filter(
-      e => !(selectIdValue(e, selectId) in state.entities)
+      e => !(selectIdValue(e, selectId) in state.entities),
     );
 
     if (models.length === 0) {
       return DidMutate.None;
-    } else {
-      merge(models, state);
-      return DidMutate.Both;
     }
+
+    merge(models, state);
+    return DidMutate.Both;
   }
 
   function addAllMutator(entities: T[], state: R): DidMutate {
@@ -40,7 +42,7 @@ export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comp
   }
 
   function updateOneMutator(change: Update<T>, state: R): DidMutate {
-    return updateManyMutator([ change ], state);
+    return updateManyMutator([change], state);
   }
 
   function takeUpdated(entities: T[], update: Update<T>, state: R): boolean {
@@ -66,16 +68,16 @@ export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comp
 
     if (entities.length === 0) {
       return DidMutate.None;
-    } else {
+    }  {
       const originalIds = state.ids;
       const updatedIndexes: any[] = [];
       state.ids = state.ids.filter((id: any, index: number) => {
         if (id in state.entities) {
           return true;
-        } else {
-          updatedIndexes.push(index);
-          return false;
         }
+        updatedIndexes.push(index);
+        return false;
+
       });
 
       merge(entities, state);
@@ -85,14 +87,14 @@ export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comp
         updatedIndexes.every((i: number) => state.ids[i] === originalIds[i])
       ) {
         return DidMutate.EntitiesOnly;
-      } else {
-        return DidMutate.Both;
       }
+      return DidMutate.Both;
+
     }
   }
 
   function upsertOneMutator(entity: T, state: R): DidMutate {
-    return upsertManyMutator([ entity ], state);
+    return upsertManyMutator([entity], state);
   }
 
   function upsertManyMutator(entities: T[], state: R): DidMutate {
@@ -132,7 +134,7 @@ export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comp
         }
         return changes;
       },
-      []
+      [],
     );
 
     return updateManyMutator(updates, state);
@@ -154,10 +156,10 @@ export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comp
 
       if (sort(model, entity) <= 0) {
         ids.push(modelId);
-        i++;
+        i = i + 1;
       } else {
         ids.push(entityId);
-        j++;
+        j = j + 1;
       }
     }
 
@@ -183,7 +185,7 @@ export function createSortedEntityAdapter<T>(selectId: IdSelector<T>, sort: Comp
     updateMany: createStateOperator(updateManyMutator),
     upsertOne: createStateOperator(upsertOneMutator),
     upsertMany: createStateOperator(upsertManyMutator),
-    map: createStateOperator(mapMutator)
+    map: createStateOperator(mapMutator),
   };
 
 }

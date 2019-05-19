@@ -1,3 +1,4 @@
+// tslint:disable: max-line-length
 import { EntityState, EntitySelectors } from './models';
 
 export function createSelectorsFactory<T>() {

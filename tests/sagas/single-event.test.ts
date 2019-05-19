@@ -53,7 +53,7 @@ describe('single event saga factory test', () => {
 
     it('should allow cancelling actions manually', () => {
       const watcher = createSingleEventSaga({
-        takeLatest: 'REQUEST',
+        takeEvery: 'REQUEST',
         ...emptyHandlerConfig,
         action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
         cancelActionType: 'CANCEL',
@@ -69,7 +69,7 @@ describe('single event saga factory test', () => {
 
     it('should undo upon cancellation', () => {
       const watcher = createSingleEventSaga({
-        takeLatest: 'REQUEST',
+        takeEvery: 'REQUEST',
         ...emptyHandlerConfig,
         action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
         cancelActionType: 'CANCEL',
@@ -87,7 +87,7 @@ describe('single event saga factory test', () => {
 
     it('should not undo upon cancellation', () => {
       const watcher = createSingleEventSaga({
-        takeLatest: 'REQUEST',
+        takeEvery: 'REQUEST',
         ...emptyHandlerConfig,
         action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
         cancelActionType: 'CANCEL',

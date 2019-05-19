@@ -1,6 +1,13 @@
-import { EntityState, IdSelector, EntityStateAdapter, Predicate, Update, EntityMap } from "./models";
-import { DidMutate, createStateOperator } from "./state-adapter";
-import { selectIdValue } from "./utils";
+import {
+  EntityState,
+  IdSelector,
+  EntityStateAdapter,
+  Predicate,
+  Update,
+  EntityMap,
+} from './models';
+import { DidMutate, createStateOperator } from './state-adapter';
+import { selectIdValue } from './utils';
 
 export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityStateAdapter<T> {
 
@@ -39,7 +46,7 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
   }
 
   function removeOneMutator(key: string, state: R): DidMutate {
-    return removeManyMutator([ key ], state);
+    return removeManyMutator([key], state);
   }
 
   function removeManyMutator(keysOrPredicate: string[] | Predicate<T>, state: R): DidMutate {
@@ -48,12 +55,13 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
       state.ids.filter(id => keysOrPredicate(state.entities[id]));
     let result = DidMutate.None;
 
-    for (let key of keys)
+    for (const key of keys) {
       if (key in state.entities) {
         state.ids.splice(state.ids.indexOf(key), 1);
         delete state.entities[key];
         result = DidMutate.Both;
       }
+    }
 
     return result;
   }
@@ -66,13 +74,13 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
     return {
       ...state,
       ids: [] as string[],
-      entities: {}
+      entities: {},
     } as S;
   }
 
   function takeNewKey(keys: { [id: string]: string }, update: Update<T>, state: R): boolean {
     const original = state.entities[update.id];
-    const updated: T = { ...original, ...update.changes }
+    const updated: T = { ...original, ...update.changes };
     const newKey = selectIdValue(updated, selectId);
     const hasNewKey = newKey !== update.id;
 
@@ -87,12 +95,13 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
   }
 
   function updateOneMutator(update: Update<T>, state: R): DidMutate {
-    return updateManyMutator([ update ], state);
+    return updateManyMutator([update], state);
   }
 
   function updateManyMutator(updates: Update<T>[], state: R): DidMutate {
     const newKeys: { [id: string]: string } = {};
 
+    // tslint:disable-next-line: no-parameter-reassignment
     updates = updates.filter(update => update.id in state.entities);
 
     const didMutateEntities = updates.length > 0;
@@ -104,16 +113,16 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
       if (didMutateIds) {
         state.ids = state.ids.map((id: any) => newKeys[id] || id);
         return DidMutate.Both;
-      } else {
-        return DidMutate.EntitiesOnly;
       }
+
+      return DidMutate.EntitiesOnly;
     }
 
     return DidMutate.None;
   }
 
   function upsertOneMutator(entity: T, state: R): DidMutate {
-    return upsertManyMutator([ entity ], state);
+    return upsertManyMutator([entity], state);
   }
 
   function upsertManyMutator(entities: T[], state: R): DidMutate {
@@ -132,11 +141,13 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
     const didMutateByUpdated = updateManyMutator(updated, state);
     const didMutateByAdded = addManyMutator(added, state);
 
-    if (didMutateByAdded === DidMutate.None && didMutateByUpdated === DidMutate.None)
+    if (didMutateByAdded === DidMutate.None && didMutateByUpdated === DidMutate.None) {
       return DidMutate.None;
+    }
 
-    if (didMutateByAdded === DidMutate.Both || didMutateByUpdated === DidMutate.Both)
+    if (didMutateByAdded === DidMutate.Both || didMutateByUpdated === DidMutate.Both) {
       return DidMutate.Both;
+    }
 
     return DidMutate.EntitiesOnly;
   }
@@ -150,7 +161,7 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
         }
         return changes;
       },
-      []
+      [],
     );
     const updates = changes.filter(({ id }) => id in state.entities);
 
@@ -168,6 +179,6 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
     updateMany: createStateOperator(updateManyMutator),
     upsertOne: createStateOperator(upsertOneMutator),
     upsertMany: createStateOperator(upsertManyMutator),
-    map: createStateOperator(mapMutator)
+    map: createStateOperator(mapMutator),
   };
 }

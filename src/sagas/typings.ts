@@ -7,7 +7,7 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export interface MyAction<TPayload, TError extends Error = Error> extends Action {
   payload?: TPayload;
   undoId?: string;
-  error?: Error;
+  error?: TError;
 }
 
 export type UndoAction = Omit<MyAction<{}>, 'payload' | 'error'>;

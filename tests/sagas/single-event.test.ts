@@ -60,10 +60,42 @@ describe('single event saga factory test', () => {
       });
 
       return expectSaga(watcher)
-        .put({ type: 'ERROR', error: new Error('Action cancelled') })
+        .put({ type: 'ERROR', error: Error('Action cancelled') })
         .dispatch({ type: 'REQUEST' })
         .delay(30)
         .dispatch({ type: 'CANCEL' })
+        .silentRun();
+    });
+
+    it('should cancel for the cancelId is a match', () => {
+      const watcher = createSingleEventSaga({
+        takeEvery: 'REQUEST',
+        ...emptyHandlerConfig,
+        action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
+        cancelActionType: 'CANCEL',
+      });
+
+      return expectSaga(watcher)
+        .put({ type: 'ERROR', error: Error('Action cancelled') })
+        .dispatch({ type: 'REQUEST', cancelId: '0462318473' })
+        .delay(30)
+        .dispatch({ type: 'CANCEL', cancelId: '0462318473' })
+        .silentRun();
+    });
+
+    it('should not cancel for the cancelId is not a match', () => {
+      const watcher = createSingleEventSaga({
+        takeEvery: 'REQUEST',
+        ...emptyHandlerConfig,
+        action: () => new Promise(resolve => setTimeout(() => resolve(), 50)),
+        cancelActionType: 'CANCEL',
+      });
+
+      return expectSaga(watcher)
+        .not.put({ type: 'ERROR', error: Error('Action cancelled') })
+        .dispatch({ type: 'REQUEST', cancelId: '0462318473' })
+        .delay(30)
+        .dispatch({ type: 'CANCEL', cancelId: '3783787042' })
         .silentRun();
     });
 
@@ -77,7 +109,7 @@ describe('single event saga factory test', () => {
       });
 
       return expectSaga(watcher)
-        .put({ type: 'ERROR', error: new Error('Action cancelled') })
+        .put({ type: 'ERROR', error: Error('Action cancelled') })
         .put({ type: 'UNDO' })
         .dispatch({ type: 'REQUEST' })
         .delay(30)
@@ -96,7 +128,7 @@ describe('single event saga factory test', () => {
       });
 
       return expectSaga(watcher)
-        .put({ type: 'ERROR', error: new Error('Action cancelled') })
+        .put({ type: 'ERROR', error: Error('Action cancelled') })
         .not.put({ type: 'UNDO' })
         .dispatch({ type: 'REQUEST' })
         .delay(30)
@@ -212,7 +244,7 @@ describe('single event saga factory test', () => {
           return new Promise((resolve, reject) => {
             if (retryCount > 0) {
               retryCount = retryCount - 1;
-              reject(new Error('Hehe'));
+              reject(Error('Hehe'));
             } else {
               resolve();
             }
@@ -300,12 +332,12 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => { throw new Error('Harry Potter is dead!'); },
+        action: () => { throw Error('Harry Potter is dead!'); },
         undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
-        .put({ type: 'ERROR', error: new Error('Harry Potter is dead!') })
+        .put({ type: 'ERROR', error: Error('Harry Potter is dead!') })
         .put({ type: 'UNDO' })
         .run();
     });
@@ -314,13 +346,13 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => { throw new Error('Harry Potter is dead!'); },
+        action: () => { throw Error('Harry Potter is dead!'); },
         undoOnError: false,
         undoAction: () => ({ type: 'UNDO' }),
       });
 
       return expectSaga(handler, requestAction)
-        .put({ type: 'ERROR', error: new Error('Harry Potter is dead!') })
+        .put({ type: 'ERROR', error: Error('Harry Potter is dead!') })
         .not.put({ type: 'UNDO' })
         .run();
     });
@@ -370,7 +402,7 @@ describe('single event saga factory test', () => {
           return new Promise((resolve, reject) => {
             if (retryCount > 0) {
               retryCount = retryCount - 1;
-              reject(new Error('Hehe'));
+              reject(Error('Hehe'));
             } else {
               resolve();
             }
@@ -380,7 +412,7 @@ describe('single event saga factory test', () => {
       });
 
       return expectSaga(handler, requestAction)
-        .put({ type: 'ERROR', error: new Error('Hehe') })
+        .put({ type: 'ERROR', error: Error('Hehe') })
         .run();
     });
 
@@ -395,7 +427,7 @@ describe('single event saga factory test', () => {
       return expectSaga(handler, requestAction)
         .put({ type: 'LOADING' })
         .delay(110)
-        .put({ type: 'ERROR', error: new Error('Action timed out') })
+        .put({ type: 'ERROR', error: Error('Action timed out') })
         .run();
     });
 
@@ -403,12 +435,12 @@ describe('single event saga factory test', () => {
       const requestAction: Action = { type: 'REQUEST' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
-        action: () => { throw new Error('Harry Potter is dead!'); },
+        action: () => { throw Error('Harry Potter is dead!'); },
       });
 
       return expectSaga(handler, requestAction)
         .put({ type: 'LOADING' })
-        .put({ type: 'ERROR', error: new Error('Harry Potter is dead!') })
+        .put({ type: 'ERROR', error: Error('Harry Potter is dead!') })
         .run();
     });
 

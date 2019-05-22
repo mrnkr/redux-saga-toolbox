@@ -16,6 +16,7 @@ import {
   SingleEventSagaConfiguration,
   SingleEventSagaHandlerConfiguration,
   UndoAction,
+  CancelAction,
 } from './typings';
 
 import { SagaIterator } from 'redux-saga';
@@ -38,7 +39,10 @@ export function createSingleEventSaga<TPayload, TResult, TAction extends MyActio
     const task = yield fork(handler, action);
 
     if (cancelActionType) {
-      yield take(cancelActionType);
+      yield take((a: CancelAction) =>
+        a.type === cancelActionType &&
+        (action.cancelId ? action.cancelId === a.cancelId : true),
+      );
       yield cancel(task);
     }
   }

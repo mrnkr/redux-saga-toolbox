@@ -6,11 +6,14 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export interface MyAction<TPayload, TError extends Error = Error> extends Action {
   payload?: TPayload;
+  cancelId?: string;
   undoId?: string;
   error?: TError;
 }
 
-export type UndoAction = Omit<MyAction<{}>, 'payload' | 'error'>;
+export type CancelAction = Omit<MyAction<{}>, 'payload' | 'undoId' | 'error'>;
+export type ErrorAction<T extends Error> = Omit<MyAction<{}, T>, 'payload' | 'cancelId' | 'undoId'>
+export type UndoAction = Omit<MyAction<{}>, 'payload' | 'cancelId' | 'error'>;
 
 export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
   takeEvery: string;
@@ -19,7 +22,7 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   loadingAction: () => Action;
   commitAction: (payload: TResult | TPayload) => MyAction<TPayload | TResult>;
   successAction: (payload?: TResult) => MyAction<TResult>;
-  errorAction: <TError extends Error>(err: TError) => MyAction<{}, TError>;
+  errorAction: <TError extends Error>(err: TError) => ErrorAction<TError>;
 
   runAfterCommit?: boolean;
   timeout?: number;
@@ -50,6 +53,7 @@ export interface ObservableSagaConfiguration<TResult> {
   cancelActionType?: string;
 
   observable: Observable<TResult>;
+  notifyIsActiveAction: () => Action;
   nextAction: (payload: TResult) => MyAction<TResult>;
   doneAction: () => Action;
   errorAction: <TError extends Error>(err: TError) => MyAction<{}, TError>;

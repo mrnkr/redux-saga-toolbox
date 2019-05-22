@@ -2,7 +2,12 @@ import { PromiseQueue } from '@mrnkr/promise-queue';
 import { SagaIterator } from 'redux-saga';
 import { cancel, cancelled, take, spawn, race, call, delay, fork, put } from 'redux-saga/effects';
 
-import { ObservableSagaConfiguration, ObservableSagaHandlerConfiguration } from './typings';
+import {
+  ObservableSagaConfiguration,
+  ObservableSagaHandlerConfiguration,
+  MyAction,
+  CancelAction,
+} from './typings';
 import { MAX_TIMEOUT } from './vars';
 
 export function createObservableSaga<TResult>(
@@ -10,25 +15,31 @@ export function createObservableSaga<TResult>(
 ) {
   const { subscribe, cancelActionType, ...handlerConfig } = config;
 
-  function* subscription(): SagaIterator {
+  function* subscription(action: MyAction<TResult>): SagaIterator {
     const handler = createObservableSagaHandler(handlerConfig);
     const task = yield fork(handler);
 
     if (cancelActionType) {
-      yield take(cancelActionType);
+      yield take((a: CancelAction) =>
+        a.type === cancelActionType &&
+        (action.cancelId ? action.cancelId === a.cancelId : true),
+      );
       yield cancel(task);
     }
   }
 
   return function* watcher(): SagaIterator {
-    while (yield take(subscribe)) {
-      yield spawn(subscription);
+    /* istanbul ignore next */
+    while (true) {
+      const action = yield take(subscribe);
+      yield spawn(subscription, action);
     }
   };
 }
 
 export function createObservableSagaHandler<TResult>({
   observable,
+  notifyIsActiveAction,
   nextAction,
   doneAction,
   errorAction,
@@ -64,6 +75,8 @@ export function createObservableSagaHandler<TResult>({
 
   return function* handler(): SagaIterator {
     try {
+      yield put(notifyIsActiveAction());
+
       while (!queue.isComplete) {
         yield* awaitNextValue();
       }

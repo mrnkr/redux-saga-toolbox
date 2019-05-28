@@ -9,7 +9,8 @@ describe('form saga generator tests', () => {
 
   let initialConfig1: FormInitialConfiguration;
   let initialConfig2: FormInitialConfiguration;
-  let testState: FormState;
+  let wrongInitialConfig: FormInitialConfiguration;
+  let testState: { forms: FormState };
 
   beforeAll(() => {
     initialConfig1 = {
@@ -18,61 +19,71 @@ describe('form saga generator tests', () => {
       validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     };
+
     initialConfig2 = {
       formName: 'another-form',
       fields: ['name', 'password'],
       validator: () => Promise.resolve({ name: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     };
+
+    wrongInitialConfig = {
+      formName: 'my-form',
+      fields: ['email', 'password'],
+      validator: () => Promise.resolve({ email: false, password: true }),
+      onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
+    };
   });
 
   beforeAll(() => {
     testState = {
-      'my-form': {
-        name: 'my-form',
-        fields: {
-          email: {
-            name: 'email',
-            value: '',
-            valid: false,
-            dirty: false,
-            focused: false,
+      forms: {
+        'my-form': {
+          name: 'my-form',
+          fields: {
+            email: {
+              name: 'email',
+              value: '',
+              valid: false,
+              dirty: false,
+              focused: false,
+            },
+            password: {
+              name: 'password',
+              value: '',
+              valid: false,
+              dirty: false,
+              focused: false,
+            },
           },
-          password: {
-            name: 'password',
-            value: '',
-            valid: false,
-            dirty: false,
-            focused: false,
-          },
+          dirty: false,
+          focused: false,
+          valid: false,
+          validating: false,
         },
-        dirty: false,
-        focused: false,
-        valid: false,
-        validating: false,
-      },
-      'another-form': {
-        name: 'another-form',
-        fields: {
-          email: {
-            name: 'name',
-            value: '',
-            valid: false,
-            dirty: false,
-            focused: false,
+        'another-form': {
+          name: 'another-form',
+          fields: {
+            email: {
+              name: 'name',
+              value: '',
+              valid: false,
+              dirty: false,
+              focused: false,
+            },
+            password: {
+              name: 'password',
+              value: '',
+              valid: false,
+              dirty: false,
+              focused: false,
+            },
           },
-          password: {
-            name: 'password',
-            value: '',
-            valid: false,
-            dirty: false,
-            focused: false,
-          },
+          dirty: false,
+          focused: false,
+          valid: false,
+          validating: false,
         },
-        dirty: false,
-        focused: false,
-        valid: false,
-        validating: false,
       },
     };
   });
@@ -83,40 +94,108 @@ describe('form saga generator tests', () => {
 
   it('should behave like this in normal scenarios', () => {
     const watcher = createFormSaga();
-    expectSaga(watcher)
+
+    return expectSaga(watcher)
       .withState(testState)
       .dispatch(FormActions.registerForm(initialConfig1))
-      .delay(200)
       .dispatch(FormActions.onFormChange({
         formName: initialConfig1.formName,
         fieldName: initialConfig1.fields[0],
         nextValue: 'a',
       }))
-      .delay(600)
+      .dispatch(FormActions.submitForm(initialConfig1.formName))
       .put(FormActions.formValidating(initialConfig1.formName))
       .put(FormActions.formValidated(initialConfig1.formName, { email: true, password: true }))
-      .dispatch(FormActions.submitForm(initialConfig1.formName))
       .put(initialConfig1.onSubmit({ email: '', password: '' }))
       .silentRun();
   });
 
-  it('should submit only the appropriate form', () => {
+  it('should not submit when invalid', () => {
     const watcher = createFormSaga();
-    expectSaga(watcher)
+
+    return expectSaga(watcher)
+      .withState(testState)
+      .dispatch(FormActions.registerForm(wrongInitialConfig))
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'a',
+      }))
+      .dispatch(FormActions.submitForm(wrongInitialConfig.formName))
+      .put(FormActions.formValidating(wrongInitialConfig.formName))
+      .put(FormActions.formValidated(wrongInitialConfig.formName, { email: false, password: true }))
+      .not.put(wrongInitialConfig.onSubmit({ email: '', password: '' }))
+      .silentRun();
+  });
+
+  it('should submit the right form', () => {
+    const watcher = createFormSaga();
+
+    return expectSaga(watcher)
       .withState(testState)
       .dispatch(FormActions.registerForm(initialConfig1))
       .dispatch(FormActions.registerForm(initialConfig2))
-      .delay(200)
-      .dispatch(FormActions.onFormChange({
-        formName: initialConfig2.formName,
-        fieldName: initialConfig2.fields[0],
-        nextValue: 'a',
-      }))
-      .delay(600)
+      .dispatch(FormActions.submitForm(initialConfig2.formName))
       .put(FormActions.formValidating(initialConfig2.formName))
       .put(FormActions.formValidated(initialConfig2.formName, { name: true, password: true }))
-      .dispatch(FormActions.submitForm(initialConfig2.formName))
-      .put(initialConfig2.onSubmit({ name: '', password: '' }))
+      .put(initialConfig1.onSubmit({ email: '', password: '' }))
+      .silentRun();
+  });
+
+  it('should validate every 500ms of inactivity', () => {
+    const watcher = createFormSaga();
+
+    return expectSaga(watcher)
+      .withState(testState)
+      .dispatch(FormActions.registerForm(initialConfig1))
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'a',
+      }))
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'b',
+      }))
+      .delay(550)
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'c',
+      }))
+      .put(FormActions.formValidating(wrongInitialConfig.formName))
+      .put(FormActions.formValidated(wrongInitialConfig.formName, { email: true, password: true }))
+      .silentRun();
+  });
+
+  it('should validate every 500ms and also before submission', () => {
+    const watcher = createFormSaga();
+
+    return expectSaga(watcher)
+      .withState(testState)
+      .dispatch(FormActions.registerForm(wrongInitialConfig))
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'a',
+      }))
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'b',
+      }))
+      .delay(550)
+      .dispatch(FormActions.onFormChange({
+        formName: wrongInitialConfig.formName,
+        fieldName: wrongInitialConfig.fields[0],
+        nextValue: 'c',
+      }))
+      .delay(300)
+      .dispatch(FormActions.submitForm(wrongInitialConfig.formName))
+      .put(FormActions.formValidating(wrongInitialConfig.formName))
+      .put(FormActions.formValidated(wrongInitialConfig.formName, { email: false, password: true }))
+      .not.put(wrongInitialConfig.onSubmit({ email: '', password: '' }))
       .silentRun();
   });
 

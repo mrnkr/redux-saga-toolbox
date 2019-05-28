@@ -49,7 +49,7 @@ export function createFormSaga(): () => SagaIterator {
   }
 
   function* handleNewValue(action: FormRegisterAction, _: FormChangeAction) {
-    const fields = yield call(getFieldsForForm, action.formName);
+    const fields = yield* getFieldsForForm(action.formName);
     yield* validate(fields, action.formName, action.validator);
   }
 

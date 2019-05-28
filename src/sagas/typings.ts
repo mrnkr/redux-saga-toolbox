@@ -2,7 +2,7 @@ import { Observable } from '@mrnkr/promise-queue';
 import { Action } from 'redux';
 import { SagaIterator } from 'redux-saga';
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+import { Omit } from '../typings';
 
 export interface MyAction<TPayload, TError extends Error = Error> extends Action {
   payload?: TPayload;

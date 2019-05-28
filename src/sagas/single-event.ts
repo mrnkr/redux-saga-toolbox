@@ -1,3 +1,4 @@
+import { SagaIterator } from 'redux-saga';
 import {
   cancel,
   take,
@@ -10,17 +11,15 @@ import {
   cancelled,
 } from 'redux-saga/effects';
 
+import { assertValidConfig } from './validation';
 import {
-  Omit,
   MyAction,
   SingleEventSagaConfiguration,
   SingleEventSagaHandlerConfiguration,
   UndoAction,
   CancelAction,
 } from './typings';
-
-import { SagaIterator } from 'redux-saga';
-import { assertValidConfig } from './validation';
+import { Omit } from '../typings';
 import { MAX_TIMEOUT } from './vars';
 
 export function createSingleEventSaga<TPayload, TResult, TAction extends MyAction<TPayload>>(

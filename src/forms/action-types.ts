@@ -1,0 +1,5 @@
+export const FORM_REGISTER = 'FORM_REGISTER';
+export const FORM_CHANGE = 'FORM_CHANGE';
+export const FORM_VALIDATING = 'FORM_VALIDATING';
+export const FORM_VALIDATED = 'FORM_VALIDATED';
+export const FORM_SUBMIT = 'FORM_SUBMIT';

@@ -1,10 +1,8 @@
+import { Dictionary } from '../typings';
+
 export type Comparer<T> = (a: T, b: T) => number;
 
 export type IdSelector<T> = (model: T) => string;
-
-export interface Dictionary<T> {
-  [id: string]: T;
-}
 
 export interface Update<T> {
   id: string;

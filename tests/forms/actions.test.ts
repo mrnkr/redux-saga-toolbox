@@ -43,6 +43,34 @@ describe('form action tests', () => {
     });
   });
 
+  it('should return a form field on focus action', () => {
+    const action = FormActions.formFieldFocus(
+      initialConfig.formName,
+      {
+        email: { focused: true },
+      },
+    );
+    expect(action).toEqual({
+      type: FormActionTypes.FORM_FIELD_FOCUS,
+      formName: initialConfig.formName,
+      payload: { email: { focused: true } },
+    });
+  });
+
+  it('should return a form field on blur action', () => {
+    const action = FormActions.formFieldBlur(
+      initialConfig.formName,
+      {
+        email: { focused: false },
+      },
+    );
+    expect(action).toEqual({
+      type: FormActionTypes.FORM_FIELD_BLUR,
+      formName: initialConfig.formName,
+      payload: { email: { focused: false } },
+    });
+  });
+
   it('should return a form validating action', () => {
     const action = FormActions.formValidating(initialConfig.formName);
     expect(action).toEqual({

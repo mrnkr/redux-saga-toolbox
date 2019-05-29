@@ -206,6 +206,51 @@ const watcher = createObservableSaga({
 });
 ```
 
+#### Form handling
+
+I personally don't enjoy redux-forms so I decided to create something simpler, not as powerful, but useful. That's how I created the form handling saga. It's a lot less configurable but hella useful, check it out!
+
+First create the saga:
+
+```typescript
+import { createFormSaga } from '@mrnkr/redux-saga-toolbox';
+const watcher = createFormSaga();
+```
+
+Register the watcher in your root saga after that! Don't forget that!
+
+Next, you will need to define your state in a way that it can be used by the saga and its actions. It's simple, don't worry! Just make sure when you define it there is a property with the key `forms` that conforms to the following specification:
+
+```typescript
+interface Dictionary<T> {
+  [key: string]: T;
+}
+
+export type FormState = Dictionary<Form>;
+
+export interface Form {
+  name: string;
+  fields: Dictionary<FormField>;
+  dirty: boolean;
+  valid: boolean;
+  validating: boolean;
+}
+
+export interface FormField {
+  name: string;
+  value: string;
+  dirty: boolean;
+  valid: boolean;
+}
+
+// your state will be like this
+let state: { forms: FormState };
+```
+
+Make sure the keys for your fields are equal to their names, same for the forms! **That is crucial**.
+
+
+
 #### Entity adapters
 
 I may document this, but I'd be repetitive. Best check out the original documentation for ngrx/entity since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better.

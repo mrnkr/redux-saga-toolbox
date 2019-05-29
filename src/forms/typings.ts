@@ -18,6 +18,14 @@ export interface FormChangeAction extends FormAction {
   payload: Dictionary<{ value: string }>;
 }
 
+export interface FormFieldFocusAction extends FormAction {
+  payload: Dictionary<{ focused: true }>;
+}
+
+export interface FormFieldBlurAction extends FormAction {
+  payload: Dictionary<{ focused: false }>;
+}
+
 export interface FormValidatedAction extends FormAction {
   payload: Dictionary<{ valid: boolean }>;
 }
@@ -37,7 +45,6 @@ export interface Form {
   name: string;
   fields: Dictionary<FormField>;
   dirty: boolean;
-  focused: boolean;
   valid: boolean;
   validating: boolean;
 }

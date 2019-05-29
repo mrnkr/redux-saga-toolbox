@@ -18,6 +18,7 @@ import {
 import {
   formValidating,
   formValidated,
+  clearForm,
 } from './actions';
 import {
   Form,
@@ -66,6 +67,7 @@ export function createFormSaga(): () => SagaIterator {
       }
 
       yield put(action.onSubmit(fields));
+      yield put(clearForm(action.formName));
     }
   }
 

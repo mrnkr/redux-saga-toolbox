@@ -57,7 +57,6 @@ describe('form saga generator tests', () => {
             },
           },
           dirty: false,
-          focused: false,
           valid: false,
           validating: false,
         },
@@ -80,7 +79,6 @@ describe('form saga generator tests', () => {
             },
           },
           dirty: false,
-          focused: false,
           valid: false,
           validating: false,
         },
@@ -107,6 +105,7 @@ describe('form saga generator tests', () => {
       .put(FormActions.formValidating(initialConfig1.formName))
       .put(FormActions.formValidated(initialConfig1.formName, { email: true, password: true }))
       .put(initialConfig1.onSubmit({ email: '', password: '' }))
+      .put(FormActions.clearForm(initialConfig1.formName))
       .silentRun();
   });
 

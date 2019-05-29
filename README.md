@@ -294,4 +294,21 @@ Done! You're handling your forms just like that! Keep your components stateless 
 
 #### Entity adapters
 
-I may document this, but I'd be repetitive. Best check out the original documentation for ngrx/entity since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better.
+I may document this, but I'd be repetitive. Best check out the original documentation for [ngrx/entity](https://ngrx.io/guide/entity) since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better.
+
+### The boy scout rule
+
+It's not enough to write code well. The code has to be kept clean over time. We've all seen code rot and degrade as time passes. So we must take an active role
+in preventing that degradation.
+
+The boy scouts of America have a simple rule that we can apply to our profession.
+
+Leave the campground better than you found it.
+
+If we all checked-in out code a little cleaner than we checked it out, the code simply could not rot. The cleanup doesn't have to be something big. Change one
+variable name for the better, break up one function that's a little too large, eliminate one small bit of duplication, clean up one composite if statement.
+
+Can you imagine working on a project where the code simply got better as time passed? Do you believe that any other option is professional? Indeed, isn't continuous
+improvement an intrinsic part of professionalism?
+
+Robert C. Martin - from the book Clean Code (he says the took this from another book but I didn't take note which one)

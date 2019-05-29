@@ -58,7 +58,6 @@ export function createFormSaga(): () => SagaIterator {
     const task = yield throttle(500, ofType(FORM_CHANGE, action.formName), handleNewValue, action);
 
     if (yield take(ofType(FORM_SUBMIT, action.formName))) {
-      yield cancel(task);
       const fields = yield call(getFieldsForForm, action.formName);
       const isValid = yield* validate(fields, action.formName, action.validator);
 
@@ -66,6 +65,7 @@ export function createFormSaga(): () => SagaIterator {
         return;
       }
 
+      yield cancel(task);
       yield put(action.onSubmit(fields));
       yield put(clearForm(action.formName));
     }

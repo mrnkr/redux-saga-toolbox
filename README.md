@@ -219,37 +219,78 @@ const watcher = createFormSaga();
 
 Register the watcher in your root saga after that! Don't forget that!
 
-Next, you will need to define your state in a way that it can be used by the saga and its actions. It's simple, don't worry! Just make sure when you define it there is a property with the key `forms` that conforms to the following specification:
+As for the state: it must have a field called `forms`, it should be an empty object. The reducer you should register is also provided for you, import it like `import { formReducer } from '@mrnkr/redux-saga-toolbox';` and register it in your root reducer. Now you're ready to start dispatching actions in your forms!
+
+To do that you need to register the actions in your component like:
 
 ```typescript
-interface Dictionary<T> {
-  [key: string]: T;
-}
+import { FormActions } from '@mrnkr/redux-saga-toolbox';
+import { bindActionCreators } from 'redux';
 
-export type FormState = Dictionary<Form>;
-
-export interface Form {
-  name: string;
-  fields: Dictionary<FormField>;
-  dirty: boolean;
-  valid: boolean;
-  validating: boolean;
-}
-
-export interface FormField {
-  name: string;
-  value: string;
-  dirty: boolean;
-  valid: boolean;
-}
-
-// your state will be like this
-let state: { forms: FormState };
+const mapDispatchToProps = dispatch => bindActionCreators({
+  ...FormActions,
+}, dispatch);
 ```
 
-Make sure the keys for your fields are equal to their names, same for the forms! **That is crucial**.
+After that you'll have the following actions at your disposal:
 
+| Action                            | Parameters                                                                                                                                                 | Description                                                                                                                                                          |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| registerForm(config)              | config = {   formName: string;   fields: string[];   validator: (Dictionary<string>) => Dictionary<boolean>;   onSubmit: (Dictionary<string>) => Action; } | Adds the form object to the state with default values. The validator passed is used from within the saga to handle that logic and so is the onSubmit action creator. |
+| onFormChange(change)              | change = {   formName: string;   fieldName: string;   nextValue: string; }                                                                                 | Modifies the value in the field whose name is fieldName within the form whose name is formName.                                                                      |
+| formFieldFocus(formName, payload) | formName: string; payload = {   [fieldName]: { focused: true }; };                                                                                         | Marks all fields provided in the payload as in focus.                                                                                                                |
+| formFieldBlur(formName, payload)  | formName: string; payload = {   [fieldName]: { focused: false }; };                                                                                        | Marks all fields provided in the payload as not in focus.                                                                                                            |
+| submitForm(formName)              | formName: string                                                                                                                                           | Launches the submission process. Handled automatically by the saga.                                                                                                  |
 
+There are a few more but those are expected to be used only by the saga, like the actions which put validation results in the state. You're only expected to access that from the state. By the way, you also have some selectors to use! Here they are...
+
+| Selector                      | Description                                                                          |
+|-------------------------------|--------------------------------------------------------------------------------------|
+| selectValues(state, formName) | Return a Dictionary with the following structure: { [fieldName: string]: string }    |
+| selectFields(state, formName) | Return a Dictionary with the following structure: { [fieldName: string]: FormField } |
+| selectAll(state, formName)    | Return the complete form object.                                                     |
+
+So, in a nutshell, do the following:
+
+1. Register the saga and the reducer.
+2. Register your form.
+3. Use the actions from the input changes.
+
+```tsx
+class MyForm extends Component {
+
+  componentDidMount() {
+    this.props.registerForm('my-form');
+  }
+
+  render() {
+    const { onFormChange, formFieldFocus, formFieldBlur, formValues, submitForm } = this.props;
+    return (
+      <form onSubmit={() => submitForm('my-form')}>
+        <input
+          name="fieldName"
+          type="text"
+          value={formValues['fieldName']}
+          onChange={e => onFormChange({
+            formName: 'my-form',
+            fieldName: 'fieldName',
+            nextValue: e.target.value,
+          })}
+          onFocus={() => formFieldFocus('my-form', { 'fieldName': { focused: true } })}
+          onBlur={() => formFieldBlur('my-form', { 'fieldName': { focused: false } })}
+        />
+      </form>
+    );
+  }
+
+}
+
+const mapStateToProps = ({ forms }) => ({
+  formValues: selectValues(forms['my-form']),
+});
+```
+
+Done! You're handling your forms just like that! Keep your components stateless :) What is more, find a way to register your forms that does not require lifecycle hooks and boom, keep your components funcional only :D
 
 #### Entity adapters
 

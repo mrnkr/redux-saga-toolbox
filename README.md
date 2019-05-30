@@ -12,6 +12,8 @@
 
 A set of utilities meant to have you write less and do more, better.
 
+It's pretty well tested (99.07% code coverage which would be 100% if I had been able to make the istanbul comments work for those while (true) lines 😅). For now, either take my word for it or clone the repo and run `yarn test` but I'm learning how to use codecov so that I can put a badge proving this really soon 🤓
+
 ### Motivation
 
 Since I started using redux-saga (which I use alongside reduxsauce) I noticed something. Not only was I writing the same logic over and over again but I was also seeing all the devs in the project do things their own way, for better or for worse. We were following no structure nor were we reutilizing logic in any way. How does one solve such a problem? Taking the best from ngrx/entity and creating factory functions whose output are the saga handlers. I like fractal as far as file structures are concerned, by auto generating sagas I can keep the logic within one file without the file getting too big, hence, I can use fractal and be happy :)
@@ -182,7 +184,7 @@ const listenToChatroomsForUserHelper = (userId) => ({
 });
 ```
 
-IMPORTANT: If your observable emits an error the saga will cancel itself, it will stop listening to the observable, unsubscribe and everything.
+**IMPORTANT**: If your observable emits an error the saga will cancel itself, it will stop listening to the observable, unsubscribe and everything.
 
 ##### Manual cancellation
 
@@ -208,31 +210,31 @@ const watcher = createObservableSaga({
 
 #### Form handling
 
-I personally don't enjoy redux-forms so I decided to create something simpler, not as powerful, but useful. That's how I created the form handling saga. It's a lot less configurable but hella useful, check it out!
+Do you need super configurable and super robust form handling that will offer a solution to all the use cases you could possibly face in your work? Well, this is not that solution, it is probably [redux-form](https://github.com/erikras/redux-form/) that you're looking for. Anyway, that is not my cup of tea personally so I created a simpler, smaller alternative. Check it out!
 
-First create the saga:
+To use it you need to first create the saga:
 
 ```typescript
 import { createFormSaga } from '@mrnkr/redux-saga-toolbox';
 const watcher = createFormSaga();
 ```
 
-Register the watcher in your root saga after that! Don't forget that!
+Register the watcher in your root saga afterwards! Don't forget that!
 
-As for the state: it must have a field called `forms`, it should be an empty object. The reducer you should register is also provided for you, import it like `import { formReducer } from '@mrnkr/redux-saga-toolbox';` and register it in your root reducer. Now you're ready to start dispatching actions in your forms!
+As for the state: it must have a field called `forms` which should be an empty object. The reducer you should register is also provided for you, import it like `import { formReducer } from '@mrnkr/redux-saga-toolbox';` and register it in your root reducer. Now you're ready to start dispatching actions in your forms!
 
 To do that you need to register the actions in your component like:
 
 ```typescript
-import { FormActions } from '@mrnkr/redux-saga-toolbox';
+import { formActions } from '@mrnkr/redux-saga-toolbox';
 import { bindActionCreators } from 'redux';
 
 const mapDispatchToProps = dispatch => bindActionCreators({
-  ...FormActions,
+  ...formActions,
 }, dispatch);
 ```
 
-After that you'll have the following actions at your disposal:
+Now, as part of your props, you'll be able to find the following functions at your disposal:
 
 | Action                            | Parameters                                                                                                                                                 | Description                                                                                                                                                          |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -242,7 +244,7 @@ After that you'll have the following actions at your disposal:
 | formFieldBlur(formName, payload)  | formName: string; payload = {   [fieldName]: { focused: false }; };                                                                                        | Marks all fields provided in the payload as not in focus.                                                                                                            |
 | submitForm(formName)              | formName: string                                                                                                                                           | Launches the submission process. Handled automatically by the saga.                                                                                                  |
 
-There are a few more but those are expected to be used only by the saga, like the actions which put validation results in the state. You're only expected to access that from the state. By the way, you also have some selectors to use! Here they are...
+There are a few more but those are expected to be used only by the saga, like the actions which put validation results in the state. You're only expected to access that from the state. By the way, you also have some selectors to use! Import them like: `import { formSelectors } from '@mrnkr/redux-saga-toolbox';` Here they are...
 
 | Selector                      | Description                                                                          |
 |-------------------------------|--------------------------------------------------------------------------------------|
@@ -257,10 +259,20 @@ So, in a nutshell, do the following:
 3. Use the actions from the input changes.
 
 ```tsx
+import { formSelectors } from '@mrnkr/redux-saga-toolbox';
+
 class MyForm extends Component {
 
   componentDidMount() {
     this.props.registerForm('my-form');
+  }
+
+  handleFormChange(e: React.FormEvent<HTMLInputElement>) {
+    onFormChange({
+      formName: 'my-form',
+      fieldName: e.target.name,
+      nextValue: e.target.value,
+    });
   }
 
   render() {
@@ -271,11 +283,7 @@ class MyForm extends Component {
           name="fieldName"
           type="text"
           value={formValues['fieldName']}
-          onChange={e => onFormChange({
-            formName: 'my-form',
-            fieldName: 'fieldName',
-            nextValue: e.target.value,
-          })}
+          onChange={this.handleFormChange}
           onFocus={() => formFieldFocus('my-form', { 'fieldName': { focused: true } })}
           onBlur={() => formFieldBlur('my-form', { 'fieldName': { focused: false } })}
         />
@@ -286,7 +294,7 @@ class MyForm extends Component {
 }
 
 const mapStateToProps = ({ forms }) => ({
-  formValues: selectValues(forms['my-form']),
+  formValues: formSelectors.selectValues(forms['my-form']),
 });
 ```
 
@@ -295,6 +303,11 @@ Done! You're handling your forms just like that! Keep your components stateless 
 #### Entity adapters
 
 I may document this, but I'd be repetitive. Best check out the original documentation for [ngrx/entity](https://ngrx.io/guide/entity) since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better.
+
+### Changelog
+
+* 1.0.0 - First release, had some trouble with config files. That's why the actual first release was 1.0.2 😬
+* 1.0.3 - If you were one of the few amazing people that downloaded the library as soon as I released it you may have noticed inconsistencies in the documentation... I tried to fix all the problems I could find in this version... Sorry!!
 
 ### The boy scout rule
 

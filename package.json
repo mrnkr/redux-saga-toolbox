@@ -1,6 +1,6 @@
 {
   "name": "@mrnkr/redux-saga-toolbox",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Tools to make redux saga users more productive than before",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -70,7 +70,7 @@ function isFormValid(fields: Dictionary<FormField>): boolean {
     );
 }
 
-export function formReducer(state: FormState, action: FormAction): FormState {
+export function formReducer(state: FormState = {}, action: FormAction): FormState {
   switch (action.type) {
     case FORM_REGISTER:
       const registerAction = <FormRegisterAction>action;

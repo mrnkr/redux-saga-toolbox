@@ -1,8 +1,9 @@
 {
   "name": "@mrnkr/redux-saga-toolbox",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Tools to make redux saga users more productive than before",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "do-publish": "yarn build && yarn publish --access=public",
@@ -20,7 +21,7 @@
   ],
   "author": "Mr.NKR",
   "license": "MIT",
-  "repository": "https://github.com/mrnkr/promise-queue",
+  "repository": "https://github.com/mrnkr/redux-saga-toolbox",
   "dependencies": {
     "@mrnkr/promise-queue": "^1.1.0",
     "lodash": "^4.17.11"

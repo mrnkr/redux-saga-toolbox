@@ -1,6 +1,6 @@
 {
   "name": "@mrnkr/redux-saga-toolbox",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Tools to make redux saga users more productive than before",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,8 @@
   "repository": "https://github.com/mrnkr/redux-saga-toolbox",
   "dependencies": {
     "@mrnkr/promise-queue": "^1.1.0",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.11",
+    "reselect": "^4.0.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",

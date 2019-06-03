@@ -54,6 +54,12 @@ describe('state selectors tests', () => {
       expect(result).toEqual(state.ids.map(id => state.entities[id]));
     });
 
+    it('should return the same pointer when asked twice', () => {
+      const firstSelect = selectors.selectAll(state);
+      const secondSelect = selectors.selectAll(state);
+      expect(firstSelect).toBe(secondSelect);
+    });
+
   });
 
   describe('selectTotal tests', () => {

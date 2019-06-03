@@ -41,11 +41,11 @@ describe('form selector tests', () => {
   describe('selectAll tests', () => {
 
     it('should select the entire form object', () => {
-      expect(selectAll(state, 'my-form')).toBe(state['my-form']);
+      expect(selectAll('my-form')({ forms: state })).toBe(state['my-form']);
     });
 
     it('should return undefined when form does not exist', () => {
-      expect(selectAll(state, 'another-form')).toBeUndefined();
+      expect(selectAll('another-form')({ forms: state })).toBeUndefined();
     });
 
   });
@@ -53,14 +53,20 @@ describe('form selector tests', () => {
   describe('selectValues tests', () => {
 
     it('should retrieve a dictionary of values', () => {
-      expect(selectValues(state, 'my-form')).toEqual({
+      expect(selectValues('my-form')({ forms: state })).toEqual({
         email: 'joselito@mailinator.com',
         password: '',
       });
     });
 
+    it('should always return the same pointer for the same form', () => {
+      const firstSelected = selectValues('my-form')({ forms: state });
+      const secondSelected = selectValues('my-form')({ forms: state });
+      expect(firstSelected).toBe(secondSelected);
+    });
+
     it('should return {} when form does not exist', () => {
-      expect(selectValues(state, 'another-form')).toEqual({});
+      expect(selectValues('another-form')({ forms: state })).toEqual({});
     });
 
   });
@@ -68,11 +74,11 @@ describe('form selector tests', () => {
   describe('selectFields tests', () => {
 
     it('should a dictionary of field objects', () => {
-      expect(selectFields(state, 'my-form')).toBe(state['my-form'].fields);
+      expect(selectFields('my-form')({ forms: state })).toBe(state['my-form'].fields);
     });
 
     it('should return {} when form does not exist', () => {
-      expect(selectFields(state, 'another-form')).toEqual({});
+      expect(selectFields('another-form')({ forms: state })).toBeUndefined();
     });
 
   });

@@ -1,24 +1,36 @@
 import mapValues from 'lodash/mapValues';
+import memoize from 'lodash/memoize';
+import { createSelector } from 'reselect';
 
 import { Form, FormField, FormState } from './typings';
 import { Dictionary } from '../typings';
 
-export function selectValues(state: FormState, formName: string): Dictionary<string> {
-  if (!state[formName]) {
-    return {};
-  }
+export const getFormByName =
+  <S extends { forms: FormState }>(formName: string) =>
+    (state: S) =>
+      !!state ? state.forms[formName] : undefined;
 
-  return mapValues(state[formName].fields, field => field.value);
-}
+export const selectValues = memoize((formName: string) => createSelector(
+  [getFormByName(formName)],
+  (state?: Form): Dictionary<string> => {
+    if (!state) {
+      return {};
+    }
 
-export function selectFields(state: FormState, formName: string): Dictionary<FormField> {
-  if (!state[formName]) {
-    return {};
-  }
+    return mapValues(state.fields, field => field.value);
+  },
+));
 
-  return state[formName].fields;
-}
+export const selectFields = memoize((formName: string) => createSelector(
+  [getFormByName(formName)],
+  (state?: Form): Dictionary<FormField> | undefined => {
+    return state ? state.fields : undefined;
+  },
+));
 
-export function selectAll(state: FormState, formName: string): Form {
-  return state[formName];
-}
+export const selectAll = memoize((formName: string) => createSelector(
+  [getFormByName(formName)],
+  (state?: Form): Form | undefined => {
+    return state;
+  },
+));

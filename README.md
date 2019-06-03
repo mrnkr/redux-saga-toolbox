@@ -244,7 +244,7 @@ Now, as part of your props, you'll be able to find the following functions at yo
 | formFieldBlur(formName, payload)  | formName: string; payload = {   [fieldName]: { focused: false }; };                                                                                        | Marks all fields provided in the payload as not in focus.                                                                                                            |
 | submitForm(formName)              | formName: string                                                                                                                                           | Launches the submission process. Handled automatically by the saga.                                                                                                  |
 
-There are a few more but those are expected to be used only by the saga, like the actions which put validation results in the state. You're only expected to access that from the state. By the way, you also have some selectors to use! Import them like: `import { formSelectors } from '@mrnkr/redux-saga-toolbox';` Here they are...
+There are a few more but those are expected to be used only by the saga, like the actions which put validation results in the state. You're only expected to access that from the state. By the way, you also have some memoized selectors to use! Import them like: `import { formSelectors } from '@mrnkr/redux-saga-toolbox';` Here they are...
 
 | Selector                      | Description                                                                          |
 |-------------------------------|--------------------------------------------------------------------------------------|
@@ -313,13 +313,14 @@ Done! You're handling your forms just like that! Keep your components stateless 
 
 #### Entity adapters
 
-I may document this, but I'd be repetitive. Best check out the original documentation for [ngrx/entity](https://ngrx.io/guide/entity) since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better.
+I may document this, but I'd be repetitive. Best check out the original documentation for [ngrx/entity](https://ngrx.io/guide/entity) since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better. By the way: selectors are memoized :)
 
 ### Changelog
 
 * 1.0.0 - First release, had some trouble with config files. That's why the actual first release was 1.0.2 😬
 * 1.0.3 - If you were one of the few amazing people that downloaded the library as soon as I released it you may have noticed inconsistencies in the documentation... I tried to fix all the problems I could find in this version... Sorry!!
 * 1.0.8 - Updated the documentation to fix some discrepancies and fixed the forms reducer so that it does not re-register a form.
+* 1.0.9 - Updated selectors to be memoized
 
 ### The boy scout rule
 

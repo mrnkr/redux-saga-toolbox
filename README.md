@@ -264,7 +264,18 @@ import { formSelectors } from '@mrnkr/redux-saga-toolbox';
 class MyForm extends Component {
 
   componentDidMount() {
-    this.props.registerForm('my-form');
+    this.props.registerForm({
+      formName: 'my-form',
+      fields: [
+        'fieldName',
+      ],
+      validator: authFormValidator,
+      onSubmit: (values) => {
+        return Actions.nextAction({
+          fieldName: values['fieldName'],
+        });
+      },
+    });
   }
 
   handleFormChange(e: React.FormEvent<HTMLInputElement>) {
@@ -294,7 +305,7 @@ class MyForm extends Component {
 }
 
 const mapStateToProps = ({ forms }) => ({
-  formValues: formSelectors.selectValues(forms['my-form']),
+  formValues: formSelectors.selectValues(forms, 'my-form'),
 });
 ```
 
@@ -308,6 +319,7 @@ I may document this, but I'd be repetitive. Best check out the original document
 
 * 1.0.0 - First release, had some trouble with config files. That's why the actual first release was 1.0.2 😬
 * 1.0.3 - If you were one of the few amazing people that downloaded the library as soon as I released it you may have noticed inconsistencies in the documentation... I tried to fix all the problems I could find in this version... Sorry!!
+* 1.0.8 - Updated the documentation to fix some discrepancies and fixed the forms reducer so that it does not re-register a form.
 
 ### The boy scout rule
 

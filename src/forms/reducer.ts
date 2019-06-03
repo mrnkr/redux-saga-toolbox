@@ -74,6 +74,11 @@ export function formReducer(state: FormState = {}, action: FormAction): FormStat
   switch (action.type) {
     case FORM_REGISTER:
       const registerAction = <FormRegisterAction>action;
+
+      if (state[action.formName]) {
+        return state;
+      }
+
       return {
         ...state,
         [action.formName]: createFormWithDefaultValues(action.formName, registerAction.fields),

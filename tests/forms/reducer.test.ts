@@ -468,4 +468,41 @@ describe('form reducer tests', () => {
     });
   });
 
+  it('should not do anything when registering already registered form', () => {
+    const state = {
+      'my-form': {
+        name: 'my-form',
+        fields: {
+          email: {
+            name: 'email',
+            value: '',
+            dirty: false,
+            focused: false,
+            valid: false,
+          },
+          password: {
+            name: 'password',
+            value: '',
+            dirty: false,
+            focused: false,
+            valid: false,
+          },
+        },
+        dirty: false,
+        valid: false,
+        validating: false,
+      },
+    };
+    const action = FormActions.registerForm({
+      formName: 'my-form',
+      fields: ['email', 'password'],
+      validator: () => Promise.resolve({ email: true, password: true }),
+      onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
+    });
+
+    const result = formReducer(state, action);
+    expect(result['my-form']).toBe(state['my-form']);
+    expect(result).toBe(state);
+  });
+
 });

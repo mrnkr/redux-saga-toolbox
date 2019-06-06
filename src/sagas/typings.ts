@@ -1,6 +1,7 @@
 import { Observable } from '@mrnkr/promise-queue';
 import { Action } from 'redux';
 import { SagaIterator } from 'redux-saga';
+import { ActionType, Predicate } from '@redux-saga/types';
 
 import { Omit } from '../typings';
 
@@ -16,7 +17,7 @@ export type ErrorAction<T extends Error> = Omit<MyAction<{}, T>, 'payload' | 'ca
 export type UndoAction = Omit<MyAction<{}>, 'payload' | 'cancelId' | 'error'>;
 
 export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
-  takeEvery: string;
+  takeEvery: ActionType | Predicate<MyAction<TPayload>>;
   cancelActionType?: string;
 
   loadingAction: () => Action;
@@ -49,7 +50,7 @@ export type SingleEventSagaHandlerConfiguration<TPayload, TResult, TUndoPayload 
   >;
 
 export interface ObservableSagaConfiguration<TResult> {
-  subscribe: string;
+  subscribe: ActionType | Predicate<Action>;
   cancelActionType?: string;
 
   observable: Observable<TResult>;

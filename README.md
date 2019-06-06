@@ -50,6 +50,8 @@ const watcher = createSingleEventSaga({
 
 Basically, just specify the action you want to use as the request action in the `takeEvery` property. Then specify the action creators for the saga to `put` and lastly specify some function to execute as the long running action that represents the center of it all, like... your API call!
 
+Also, you may fancy using an alternative way of providing your takeEvery parameter. An equivalent way of listening to the same action is `takeEvery: action => action.type === 'REQUEST'`. Why is this useful? Well, say you have multiple actions and they should all trigger the same saga, this can be achieved in the following fashion: `takeEvery: action => action.type === actionType1 || action.type === actionType2`. This I added because I needed it, hope some of you will also find it useful!
+
 ##### Task cancellation
 
 Take the same basic saga. Say the download is taking longer than expected and you want to cancel it. Just dispatch the cancel action you specified in the configuration like so:
@@ -186,6 +188,8 @@ const listenToChatroomsForUserHelper = (userId) => ({
 
 **IMPORTANT**: If your observable emits an error the saga will cancel itself, it will stop listening to the observable, unsubscribe and everything.
 
+Just as `SingleEventSagaConfiguration` allows its `takeEvery` property to be a predicate (`<T>(e: T) => boolean`) `ObservableSagaGenerator` allows its `subscribe` property to be one as well. Refer to that part of the documentation if you need to, same if you'd like to check out a possible use case!
+
 ##### Manual cancellation
 
 If your observable never completes, like the one in the example above, you can tell the saga to listen to a specific action and cancel then. Like so:
@@ -320,7 +324,8 @@ I may document this, but I'd be repetitive. Best check out the original document
 * 1.0.0 - First release, had some trouble with config files. That's why the actual first release was 1.0.2 😬
 * 1.0.3 - If you were one of the few amazing people that downloaded the library as soon as I released it you may have noticed inconsistencies in the documentation... I tried to fix all the problems I could find in this version... Sorry!!
 * 1.0.8 - Updated the documentation to fix some discrepancies and fixed the forms reducer so that it does not re-register a form.
-* 1.0.9 - Updated selectors to be memoized
+* 1.0.9 - Updated selectors to be memoized.
+* 1.0.10 - Updated saga generator typings to support predicates as takeEvery and subscribe actions. If you're like me you wanted this to trigger the same saga with multiple actions.
 
 ### The boy scout rule
 

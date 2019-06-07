@@ -98,7 +98,7 @@ describe('form saga generator tests', () => {
       .dispatch(FormActions.registerForm(initialConfig1))
       .dispatch(FormActions.onFormChange({
         formName: initialConfig1.formName,
-        fieldName: initialConfig1.fields[0],
+        fieldName: 'email',
         nextValue: 'a',
       }))
       .dispatch(FormActions.submitForm(initialConfig1.formName))
@@ -117,7 +117,7 @@ describe('form saga generator tests', () => {
       .dispatch(FormActions.registerForm(wrongInitialConfig))
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'a',
       }))
       .dispatch(FormActions.submitForm(wrongInitialConfig.formName))
@@ -149,18 +149,18 @@ describe('form saga generator tests', () => {
       .dispatch(FormActions.registerForm(initialConfig1))
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'a',
       }))
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'b',
       }))
       .delay(550)
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'c',
       }))
       .put(FormActions.formValidating(wrongInitialConfig.formName))
@@ -176,18 +176,18 @@ describe('form saga generator tests', () => {
       .dispatch(FormActions.registerForm(wrongInitialConfig))
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'a',
       }))
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'b',
       }))
       .delay(550)
       .dispatch(FormActions.onFormChange({
         formName: wrongInitialConfig.formName,
-        fieldName: wrongInitialConfig.fields[0],
+        fieldName: 'email',
         nextValue: 'c',
       }))
       .delay(300)

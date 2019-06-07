@@ -9,7 +9,7 @@ export interface FormAction extends Action {
 }
 
 export interface FormRegisterAction<T extends Action = Action> extends FormAction {
-  fields: string[];
+  fields: string[] | Dictionary<string>;
   validator: Validator;
   onSubmit: SubmissionHandler<T>;
 }

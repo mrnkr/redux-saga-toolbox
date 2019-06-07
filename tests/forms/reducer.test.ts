@@ -505,4 +505,42 @@ describe('form reducer tests', () => {
     expect(result).toBe(state);
   });
 
+  it('should allow the definition of initial values', () => {
+    const state = {};
+    const action = FormActions.registerForm({
+      formName: 'my-form',
+      fields: {
+        email: 'john@doe.com',
+        password: 'patata2',
+      },
+      validator: () => Promise.resolve({ email: true, password: true }),
+      onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
+    });
+
+    expect(formReducer(state, action)).toEqual({
+      'my-form': {
+        name: 'my-form',
+        fields: {
+          email: {
+            name: 'email',
+            value: 'john@doe.com',
+            dirty: false,
+            focused: false,
+            valid: true,
+          },
+          password: {
+            name: 'password',
+            value: 'patata2',
+            dirty: false,
+            focused: false,
+            valid: true,
+          },
+        },
+        dirty: false,
+        valid: true,
+        validating: false,
+      },
+    });
+  });
+
 });

@@ -32,14 +32,14 @@ describe('form action tests', () => {
   it('should return a form change action', () => {
     const action = FormActions.onFormChange({
       formName: initialConfig.formName,
-      fieldName: initialConfig.fields[0],
+      fieldName: 'email',
       nextValue: 'patato@mailinator.com',
     });
 
     expect(action).toEqual({
       type: FormActionTypes.FORM_CHANGE,
       formName: initialConfig.formName,
-      payload: { [initialConfig.fields[0]]: { value: 'patato@mailinator.com' } },
+      payload: { email: { value: 'patato@mailinator.com' } },
     });
   });
 

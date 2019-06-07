@@ -20,26 +20,38 @@ import {
 } from './typings';
 import { Dictionary } from '../typings';
 
-function createFormWithDefaultValues(name: string, fields: string[]): Form {
-  const retVal: Form = {
+function assertDictionary(val: string[] | Dictionary<string>): Dictionary<string> {
+  if (val.constructor === Array) {
+    const retVal: Dictionary<string> = {};
+    (val as string[]).forEach((key) => { retVal[key] = ''; });
+    return retVal;
+  }
+
+  return val as Dictionary<string>;
+}
+
+function createFormWithDefaultValues(name: string, fieldInitializer: Dictionary<string>): Form {
+  const fields: Dictionary<FormField> = {};
+
+  Object
+    .keys(fieldInitializer)
+    .forEach((key) => {
+      fields[key] = {
+        name: key,
+        value: fieldInitializer[key],
+        dirty: false,
+        focused: false,
+        valid: fieldInitializer[key] !== '',
+      };
+    });
+
+  return {
     name,
-    fields: {},
+    fields,
     dirty: false,
-    valid: false,
+    valid: Object.keys(fields).every(key => fields[key].valid),
     validating: false,
   };
-
-  fields.forEach((name) => {
-    retVal.fields[name] = {
-      name,
-      value: '',
-      dirty: false,
-      focused: false,
-      valid: false,
-    };
-  });
-
-  return retVal;
 }
 
 function updateFields(
@@ -81,7 +93,10 @@ export function formReducer(state: FormState = {}, action: FormAction): FormStat
 
       return {
         ...state,
-        [action.formName]: createFormWithDefaultValues(action.formName, registerAction.fields),
+        [action.formName]: createFormWithDefaultValues(
+          action.formName,
+          assertDictionary(registerAction.fields),
+        ),
       };
     case FORM_CHANGE:
     case FORM_FIELD_FOCUS:

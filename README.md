@@ -315,6 +315,25 @@ const mapStateToProps = ({ forms }) => ({
 
 Done! You're handling your forms just like that! Keep your components stateless :) What is more, find a way to register your forms that does not require lifecycle hooks and boom, keep your components funcional only :D
 
+##### Initial values
+
+To configure your form so that it has initial values you may change your configuration object so that it looks like this:
+
+```typescript
+const formConfig = {
+  formName: 'my-form',
+  fields: {
+    fieldName: 'initialValue',
+  },
+  validator: authFormValidator,
+  onSubmit: (values) => {
+    return Actions.nextAction({
+      fieldName: values['fieldName'],
+    });
+  },
+};
+```
+
 #### Entity adapters
 
 I may document this, but I'd be repetitive. Best check out the original documentation for [ngrx/entity](https://ngrx.io/guide/entity) since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better. By the way: selectors are memoized :)
@@ -326,6 +345,7 @@ I may document this, but I'd be repetitive. Best check out the original document
 * 1.0.8 - Updated the documentation to fix some discrepancies and fixed the forms reducer so that it does not re-register a form.
 * 1.0.9 - Updated selectors to be memoized.
 * 1.0.10 - Updated saga generator typings to support predicates as takeEvery and subscribe actions. If you're like me you wanted this to trigger the same saga with multiple actions.
+* 1.0.11 - Added support for initial values in the forms module.
 
 ### The boy scout rule
 

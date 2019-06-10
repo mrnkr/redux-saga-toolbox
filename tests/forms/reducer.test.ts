@@ -13,6 +13,7 @@ describe('form reducer tests', () => {
     const action = FormActions.registerForm({
       formName: 'my-form',
       fields: ['email', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     });
@@ -414,6 +415,7 @@ describe('form reducer tests', () => {
     const action = FormActions.registerForm({
       formName: 'another-form',
       fields: ['name', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ name: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     });
@@ -496,6 +498,7 @@ describe('form reducer tests', () => {
     const action = FormActions.registerForm({
       formName: 'my-form',
       fields: ['email', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     });
@@ -513,6 +516,7 @@ describe('form reducer tests', () => {
         email: 'john@doe.com',
         password: 'patata2',
       },
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     });

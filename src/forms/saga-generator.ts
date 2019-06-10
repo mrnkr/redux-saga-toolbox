@@ -67,7 +67,9 @@ export function createFormSaga(): () => SagaIterator {
 
       yield cancel(task);
       yield put(action.onSubmit(fields));
-      yield put(clearForm(action.formName));
+      if (action.unregisterOnSubmit) {
+        yield put(clearForm(action.formName));
+      }
     }
   }
 

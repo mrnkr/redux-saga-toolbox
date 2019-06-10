@@ -242,7 +242,7 @@ Now, as part of your props, you'll be able to find the following functions at yo
 
 | Action                            | Parameters                                                                                                                                                 | Description                                                                                                                                                          |
 |-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| registerForm(config)              | config = {   formName: string;   fields: string[];   validator: (Dictionary<string>) => Dictionary<boolean>;   onSubmit: (Dictionary<string>) => Action; } | Adds the form object to the state with default values. The validator passed is used from within the saga to handle that logic and so is the onSubmit action creator. |
+| registerForm(config)              | config = {   formName: string;   fields: string[];   unregisterOnSubmit: boolean; validator: (Dictionary<string>) => Dictionary<boolean>;   onSubmit: (Dictionary<string>) => Action; } | Adds the form object to the state with default values. The validator passed is used from within the saga to handle that logic and so is the onSubmit action creator. |
 | onFormChange(change)              | change = {   formName: string;   fieldName: string;   nextValue: string; }                                                                                 | Modifies the value in the field whose name is fieldName within the form whose name is formName.                                                                      |
 | formFieldFocus(formName, payload) | formName: string; payload = {   [fieldName]: { focused: true }; };                                                                                         | Marks all fields provided in the payload as in focus.                                                                                                                |
 | formFieldBlur(formName, payload)  | formName: string; payload = {   [fieldName]: { focused: false }; };                                                                                        | Marks all fields provided in the payload as not in focus.                                                                                                            |
@@ -273,6 +273,7 @@ class MyForm extends Component {
       fields: [
         'fieldName',
       ],
+      unregisterOnSubmit: true,
       validator: authFormValidator,
       onSubmit: (values) => {
         return Actions.nextAction({
@@ -325,6 +326,7 @@ const formConfig = {
   fields: {
     fieldName: 'initialValue',
   },
+  unregisterOnSubmit: true,
   validator: authFormValidator,
   onSubmit: (values) => {
     return Actions.nextAction({
@@ -333,6 +335,10 @@ const formConfig = {
   },
 };
 ```
+
+##### I hate it when my forms get cleared! 😡
+
+Don't despair! It's okay. I hate it too. Didn't realize I would hate it as much as I do now. For that reason you may now set `unregisterOnSubmit` to `false` in your form config.
 
 #### Entity adapters
 
@@ -346,6 +352,7 @@ I may document this, but I'd be repetitive. Best check out the original document
 * 1.0.9 - Updated selectors to be memoized.
 * 1.0.10 - Updated saga generator typings to support predicates as takeEvery and subscribe actions. If you're like me you wanted this to trigger the same saga with multiple actions.
 * 1.0.11 - Added support for initial values in the forms module.
+* 1.0.12 - Added support for not clearing forms on submit.
 
 ### The boy scout rule
 

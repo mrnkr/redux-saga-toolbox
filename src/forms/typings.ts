@@ -10,6 +10,7 @@ export interface FormAction extends Action {
 
 export interface FormRegisterAction<T extends Action = Action> extends FormAction {
   fields: string[] | Dictionary<string>;
+  unregisterOnSubmit: boolean;
   validator: Validator;
   onSubmit: SubmissionHandler<T>;
 }
@@ -33,7 +34,7 @@ export interface FormValidatedAction extends FormAction {
 export type FormSubmitAction = FormAction;
 export type FormInitialConfiguration = Omit<FormRegisterAction, 'type'>;
 
-export interface FormChangeDTO {
+export interface FormChange {
   formName: string;
   fieldName: string;
   nextValue: string;

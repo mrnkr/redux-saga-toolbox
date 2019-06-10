@@ -13,7 +13,7 @@ import {
 import {
   FormRegisterAction,
   FormChangeAction,
-  FormChangeDTO,
+  FormChange,
   FormAction,
   FormSubmitAction,
   FormInitialConfiguration,
@@ -30,7 +30,7 @@ export function registerForm(config: FormInitialConfiguration): FormRegisterActi
   };
 }
 
-export function onFormChange(change: FormChangeDTO): FormChangeAction {
+export function onFormChange(change: FormChange): FormChangeAction {
   return {
     formName: change.formName,
     payload: { [change.fieldName]: { value: change.nextValue } },

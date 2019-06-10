@@ -11,6 +11,7 @@ describe('form action tests', () => {
     initialConfig = {
       formName: 'my-form',
       fields: ['email', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     };

@@ -9,6 +9,7 @@ describe('form saga generator tests', () => {
 
   let initialConfig1: FormInitialConfiguration;
   let initialConfig2: FormInitialConfiguration;
+  let initialConfig3: FormInitialConfiguration;
   let wrongInitialConfig: FormInitialConfiguration;
   let testState: { forms: FormState };
 
@@ -16,6 +17,7 @@ describe('form saga generator tests', () => {
     initialConfig1 = {
       formName: 'my-form',
       fields: ['email', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     };
@@ -23,13 +25,23 @@ describe('form saga generator tests', () => {
     initialConfig2 = {
       formName: 'another-form',
       fields: ['name', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ name: true, password: true }),
+      onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
+    };
+
+    initialConfig3 = {
+      formName: 'my-form',
+      fields: ['email', 'password'],
+      unregisterOnSubmit: false,
+      validator: () => Promise.resolve({ email: true, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     };
 
     wrongInitialConfig = {
       formName: 'my-form',
       fields: ['email', 'password'],
+      unregisterOnSubmit: true,
       validator: () => Promise.resolve({ email: false, password: true }),
       onSubmit: (values: Dictionary<string>) => ({ values, type: 'SUBMITTED' }),
     };
@@ -195,6 +207,25 @@ describe('form saga generator tests', () => {
       .put(FormActions.formValidating(wrongInitialConfig.formName))
       .put(FormActions.formValidated(wrongInitialConfig.formName, { email: false, password: true }))
       .not.put(wrongInitialConfig.onSubmit({ email: '', password: '' }))
+      .silentRun();
+  });
+
+  it('should behave like this when told not to clear on submit', () => {
+    const watcher = createFormSaga();
+
+    return expectSaga(watcher)
+      .withState(testState)
+      .dispatch(FormActions.registerForm(initialConfig3))
+      .dispatch(FormActions.onFormChange({
+        formName: initialConfig1.formName,
+        fieldName: 'email',
+        nextValue: 'a',
+      }))
+      .dispatch(FormActions.submitForm(initialConfig1.formName))
+      .put(FormActions.formValidating(initialConfig1.formName))
+      .put(FormActions.formValidated(initialConfig1.formName, { email: true, password: true }))
+      .put(initialConfig1.onSubmit({ email: '', password: '' }))
+      .not.put(FormActions.clearForm(initialConfig1.formName))
       .silentRun();
   });
 

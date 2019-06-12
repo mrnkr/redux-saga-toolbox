@@ -229,4 +229,26 @@ describe('form saga generator tests', () => {
       .silentRun();
   });
 
+  it('should allow multiple submits', () => {
+    const watcher = createFormSaga();
+
+    return expectSaga(watcher)
+      .withState(testState)
+      .dispatch(FormActions.registerForm(initialConfig3))
+      .dispatch(FormActions.onFormChange({
+        formName: initialConfig1.formName,
+        fieldName: 'email',
+        nextValue: 'a',
+      }))
+      .dispatch(FormActions.submitForm(initialConfig1.formName))
+      .delay(30)
+      .dispatch(FormActions.submitForm(initialConfig1.formName))
+      .put(FormActions.formValidating(initialConfig1.formName))
+      .put(FormActions.formValidated(initialConfig1.formName, { email: true, password: true }))
+      .put(initialConfig1.onSubmit({ email: '', password: '' }))
+      .put(initialConfig1.onSubmit({ email: '', password: '' }))
+      .not.put(FormActions.clearForm(initialConfig1.formName))
+      .silentRun();
+  });
+
 });

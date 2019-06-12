@@ -1,8 +1,9 @@
 import mapValues from 'lodash/mapValues';
-import { SagaIterator, TakeableChannel } from 'redux-saga';
+import { SagaIterator, TakeableChannel, Task } from 'redux-saga';
 import {
   take,
   spawn,
+  fork,
   put,
   call,
   throttle,
@@ -14,6 +15,7 @@ import {
   FORM_REGISTER,
   FORM_CHANGE,
   FORM_SUBMIT,
+  FORM_CLEAR,
 } from './action-types';
 import {
   formValidating,
@@ -42,6 +44,12 @@ export function createFormSaga(): () => SagaIterator {
     return fields;
   }
 
+  function* handleFormClear(formName: string, task: Task) {
+    if (yield take(ofType(FORM_CLEAR, formName))) {
+      yield cancel(task);
+    }
+  }
+
   function* validate(fields: Dictionary<string>, formName: string, validator: Validator) {
     yield put(formValidating(formName));
     const validation: Dictionary<boolean> = yield call(validator, fields);
@@ -56,8 +64,9 @@ export function createFormSaga(): () => SagaIterator {
 
   function* subscription(action: FormRegisterAction) {
     const task = yield throttle(500, ofType(FORM_CHANGE, action.formName), handleNewValue, action);
+    yield fork(handleFormClear, action.formName, task);
 
-    if (yield take(ofType(FORM_SUBMIT, action.formName))) {
+    while (yield take(ofType(FORM_SUBMIT, action.formName))) {
       const fields = yield call(getFieldsForForm, action.formName);
       const isValid = yield* validate(fields, action.formName, action.validator);
 
@@ -65,7 +74,6 @@ export function createFormSaga(): () => SagaIterator {
         return;
       }
 
-      yield cancel(task);
       yield put(action.onSubmit(fields));
       if (action.unregisterOnSubmit) {
         yield put(clearForm(action.formName));

@@ -547,4 +547,34 @@ describe('form reducer tests', () => {
     });
   });
 
+  it('should do nothing when clearing a non existent form', () => {
+    const state = {
+      'my-form': {
+        name: 'my-form',
+        fields: {
+          email: {
+            name: 'email',
+            value: 'potato@mailinator.com',
+            dirty: true,
+            focused: false,
+            valid: false,
+          },
+          password: {
+            name: 'password',
+            value: '',
+            dirty: false,
+            focused: false,
+            valid: false,
+          },
+        },
+        dirty: true,
+        valid: false,
+        validating: false,
+      },
+    };
+    const action = FormActions.clearForm('some-form');
+
+    expect(formReducer(state, action)).toBe(state);
+  });
+
 });

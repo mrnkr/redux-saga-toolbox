@@ -353,6 +353,7 @@ I may document this, but I'd be repetitive. Best check out the original document
 * 1.0.10 - Updated saga generator typings to support predicates as takeEvery and subscribe actions. If you're like me you wanted this to trigger the same saga with multiple actions.
 * 1.0.11 - Added support for initial values in the forms module.
 * 1.0.12 - Added support for not clearing forms on submit.
+* 1.0.13 - Added support for multiple submissions on the same form (sorry if you had to deal with this error 😞)
 
 ### The boy scout rule
 

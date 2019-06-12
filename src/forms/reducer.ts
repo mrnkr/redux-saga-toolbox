@@ -56,7 +56,7 @@ function createFormWithDefaultValues(name: string, fieldInitializer: Dictionary<
 
 function updateFields(
   fields: Dictionary<FormField>,
-  payload: Dictionary<{ value: string } | { valid: boolean} | { focused: boolean }>,
+  payload: Dictionary<{ value: string } | { valid: boolean } | { focused: boolean }>,
 ): Dictionary<FormField> {
   const retVal = { ...fields };
 
@@ -124,6 +124,10 @@ export function formReducer(state: FormState = {}, action: FormAction): FormStat
         },
       };
     case FORM_CLEAR:
+      if (!(action.formName in state)) {
+        return state;
+      }
+
       const nextState = { ...state };
       delete nextState[action.formName];
       return nextState;

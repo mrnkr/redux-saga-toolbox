@@ -29,10 +29,6 @@ export function createSortedEntityAdapter<T>(
   }
 
   function addAllMutator(entities: T[], state: R): DidMutate {
-    if (entities.length === 0) {
-      return DidMutate.None;
-    }
-
     state.entities = {};
     state.ids = [];
 
@@ -68,7 +64,7 @@ export function createSortedEntityAdapter<T>(
 
     if (entities.length === 0) {
       return DidMutate.None;
-    }  {
+    } {
       const originalIds = state.ids;
       const updatedIndexes: any[] = [];
       state.ids = state.ids.filter((id: any, index: number) => {

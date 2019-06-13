@@ -110,12 +110,15 @@ describe('unsorted entity adapter operator tests', () => {
       });
     });
 
-    it('should not do anything when passed an empty array', () => {
+    it('should remove previous ones even when the provided array is empty', () => {
       const entities: TestItem[] = [];
 
       const result = adapter.addAll(entities, state);
 
-      expect(result).toBe(state);
+      expect(result).toEqual({
+        ids: [],
+        entities: {},
+      });
     });
 
   });

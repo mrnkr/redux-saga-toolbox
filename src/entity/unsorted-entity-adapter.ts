@@ -33,10 +33,6 @@ export function createUnsortedEntityAdapter<T>(selectId: IdSelector<T>): EntityS
   }
 
   function addAllMutator(entities: T[], state: R): DidMutate {
-    if (entities.length === 0) {
-      return DidMutate.None;
-    }
-
     state.ids = [];
     state.entities = {};
 

@@ -71,7 +71,7 @@ export function createFormSaga(): () => SagaIterator {
       const isValid = yield* validate(fields, action.formName, action.validator);
 
       if (!isValid) {
-        return;
+        continue;
       }
 
       yield put(action.onSubmit(fields));

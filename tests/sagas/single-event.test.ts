@@ -51,6 +51,20 @@ describe('single event saga factory test', () => {
         .silentRun();
     });
 
+    it('should accept a predicate as its argument', () => {
+      const watcher = createSingleEventSaga({
+        takeEvery: action => action.type === 'REQUEST',
+        ...emptyHandlerConfig,
+      });
+
+      const expectedFirstActionInForkedSaga = { type: 'LOADING' };
+
+      return expectSaga(watcher)
+        .put(expectedFirstActionInForkedSaga)
+        .dispatch({ type: 'REQUEST' })
+        .silentRun();
+    });
+
     it('should allow cancelling actions manually', () => {
       const watcher = createSingleEventSaga({
         takeEvery: 'REQUEST',
@@ -189,7 +203,7 @@ describe('single event saga factory test', () => {
       const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        *beforeAction (args): SagaIterator {
+        *beforeAction(args): SagaIterator {
           yield put({ type: 'PROCESSING_ARGS', payload: { ...args } });
           return { data: 'We fight, we win!' };
         },
@@ -206,7 +220,7 @@ describe('single event saga factory test', () => {
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        *afterAction (res): SagaIterator {
+        *afterAction(res): SagaIterator {
           yield put({ type: 'PROCESSING_RESULT', payload: { ...res } });
           return { data: ['general', 'kenobi'] };
         },
@@ -223,7 +237,7 @@ describe('single event saga factory test', () => {
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        *afterAction (res, args): SagaIterator {
+        *afterAction(res, args): SagaIterator {
           yield put({ type: 'PROCESSING_RESULT', payload: { res, args } });
           return { data: ['general', 'kenobi'] };
         },
@@ -318,7 +332,7 @@ describe('single event saga factory test', () => {
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
         undoAction: payload => ({ payload, type: 'UNDO' }),
-        *undoPayloadBuilder (): SagaIterator { return { data: 'Bye' }; },
+        *undoPayloadBuilder(): SagaIterator { return { data: 'Bye' }; },
       });
 
       return expectSaga(handler, requestAction)

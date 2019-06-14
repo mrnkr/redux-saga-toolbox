@@ -9,6 +9,7 @@ import {
   throttle,
   select,
   cancel,
+  race,
 } from 'redux-saga/effects';
 
 import {
@@ -66,7 +67,16 @@ export function createFormSaga(): () => SagaIterator {
     const task = yield throttle(500, ofType(FORM_CHANGE, action.formName), handleNewValue, action);
     yield fork(handleFormClear, action.formName, task);
 
-    while (yield take(ofType(FORM_SUBMIT, action.formName))) {
+    while (true) {
+      const { kill } = yield race({
+        submit: take(ofType(FORM_SUBMIT, action.formName)),
+        kill: take(ofType(FORM_CLEAR, action.formName)),
+      });
+
+      if (kill) {
+        return;
+      }
+
       const fields = yield call(getFieldsForForm, action.formName);
       const isValid = yield* validate(fields, action.formName, action.validator);
 

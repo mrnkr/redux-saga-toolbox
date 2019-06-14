@@ -356,6 +356,7 @@ I may document this, but I'd be repetitive. Best check out the original document
 * 1.0.13 - Added support for multiple submissions on the same form (sorry if you had to deal with this error 😞)
 * 1.0.14 - Fixed bug in addAll in entity adapter (both sorted and unsorted) (having bugs there means that I did not copy the whole thing carelessly, just remade it carelessly 😛)
 * 1.0.15 - Fixed bug that when a form had an error the saga stopped running.
+* 1.0.16 - Fixed bug in form saga - stops listening when the form is cleared.
 
 ### The boy scout rule
 

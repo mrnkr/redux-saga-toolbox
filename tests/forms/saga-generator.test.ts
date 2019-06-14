@@ -251,4 +251,24 @@ describe('form saga generator tests', () => {
       .silentRun();
   });
 
+  it('should not be running after form clear', () => {
+    const watcher = createFormSaga();
+
+    return expectSaga(watcher)
+      .withState(testState)
+      .dispatch(FormActions.registerForm(initialConfig3))
+      .delay(30)
+      .dispatch(FormActions.clearForm(initialConfig1.formName))
+      .delay(30)
+      .dispatch(FormActions.onFormChange({
+        formName: initialConfig1.formName,
+        fieldName: 'email',
+        nextValue: 'ab',
+      }))
+      .not.put(FormActions.formValidating(initialConfig1.formName))
+      .not.put(FormActions.formValidated(initialConfig1.formName, { email: true, password: true }))
+      .not.put(initialConfig1.onSubmit({ email: '', password: '' }))
+      .silentRun();
+  });
+
 });

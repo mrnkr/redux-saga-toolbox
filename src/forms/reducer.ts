@@ -41,7 +41,7 @@ function createFormWithDefaultValues(name: string, fieldInitializer: Dictionary<
         value: fieldInitializer[key],
         dirty: false,
         focused: false,
-        valid: fieldInitializer[key] !== '',
+        valid: true,
       };
     });
 
@@ -49,7 +49,7 @@ function createFormWithDefaultValues(name: string, fieldInitializer: Dictionary<
     name,
     fields,
     dirty: false,
-    valid: Object.keys(fields).every(key => fields[key].valid),
+    valid: true,
     validating: false,
   };
 }

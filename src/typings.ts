@@ -1,5 +1,7 @@
+import { StrictEffect } from 'redux-saga/effects';
+
 export interface Dictionary<T> {
   [key: string]: T;
 }
 
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+export type SagaIterator<TReturn> = Generator<StrictEffect, TReturn, void>;

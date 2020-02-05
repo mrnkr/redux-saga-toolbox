@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga';
+import { Task } from 'redux-saga';
 import {
   cancel,
   take,
@@ -19,7 +19,7 @@ import {
   UndoAction,
   CancelAction,
 } from './typings';
-import { Omit } from '../typings';
+import { SagaIterator } from '../typings';
 import { MAX_TIMEOUT } from './vars';
 
 export function createSingleEventSaga<TPayload, TResult, TAction extends MyAction<TPayload>>(
@@ -33,24 +33,24 @@ export function createSingleEventSaga<TPayload, TResult, TAction extends MyActio
     ...handlerConfig
   } = config;
 
-  function* subscription(action: TAction): SagaIterator {
+  function* subscription(action: TAction): SagaIterator<void> {
     const handler = createSingleEventSagaHandler(handlerConfig);
-    const task = yield fork(handler, action);
+    const task: unknown = yield fork(handler, action);
 
     if (cancelActionType) {
       yield take((a: CancelAction) =>
         a.type === cancelActionType &&
         (action.cancelId ? action.cancelId === a.cancelId : true),
       );
-      yield cancel(task);
+      yield cancel(task as Task);
     }
   }
 
-  return function* watcher(): SagaIterator {
+  return function* watcher(): SagaIterator<void> {
     /* istanbul ignore next */
     while (true) {
-      const action = yield take(takeActionType);
-      yield spawn(subscription, action);
+      const action: unknown = yield take(takeActionType);
+      yield spawn(subscription, action as TAction);
     }
   };
 }
@@ -58,15 +58,15 @@ export function createSingleEventSaga<TPayload, TResult, TAction extends MyActio
 export function createSingleEventSagaHandler
 <TPayload, TResult, TAction extends MyAction<TPayload>>({
   loadingAction,
-  beforeAction = function* (args): SagaIterator { return args; },
+  beforeAction = function* (args: any): SagaIterator<any> { return args; },
   action,
   timeout: to = MAX_TIMEOUT,
   retry = 0,
-  afterAction = function* (args): SagaIterator { return args; },
+  afterAction = function* (args: any): SagaIterator<any> { return args; },
   runAfterCommit: shouldRunAfterCommit = false,
   undoThreshold = 0,
   undoActionType = '_',
-  undoPayloadBuilder: buildUndoPayload = function* (args): SagaIterator { return args; },
+  undoPayloadBuilder: buildUndoPayload = function* (args: any): SagaIterator<any> { return args; },
   undoAction = () => ({ type: '_' }),
   undoOnError = true,
   commitAction,
@@ -75,11 +75,11 @@ export function createSingleEventSagaHandler
 }: SingleEventSagaHandlerConfiguration<TPayload, TResult>) {
   let retryCount = retry;
 
-  function* runAction(args: Omit<TAction, 'type'>): SagaIterator {
+  function* runAction(args: Omit<TAction, 'type'>): SagaIterator<TResult | void> {
     try {
       const processedArgs = yield* beforeAction(args.payload);
 
-      const { result, timeout } = yield race({
+      const { result, timeout }: any = yield race({
         result: call(action, processedArgs),
         timeout: delay(to),
       });
@@ -101,7 +101,7 @@ export function createSingleEventSagaHandler
     }
   }
 
-  return function* handler({ type, ...args }: TAction): SagaIterator {
+  return function* handler({ type, ...args }: TAction): SagaIterator<void> {
     let undoPayload: TPayload;
 
     try {
@@ -112,7 +112,7 @@ export function createSingleEventSagaHandler
       if (shouldRunAfterCommit) {
         yield put(commitAction(args.payload!));
 
-        const { commit, undo } = yield race({
+        const { commit, undo }: any = yield race({
           commit: delay(undoThreshold),
           undo: take((action: UndoAction) =>
             action.type === undoActionType &&
@@ -125,13 +125,13 @@ export function createSingleEventSagaHandler
         }
 
         if (commit) {
-          result = yield* runAction(args);
+          result = (yield* runAction(args)) as TResult;
           yield put(successAction(result));
         }
       }
 
       if (!shouldRunAfterCommit) {
-        result = yield* runAction(args);
+        result = (yield* runAction(args)) as TResult;
         yield put(commitAction(result));
         yield put(successAction(result));
       }
@@ -141,7 +141,7 @@ export function createSingleEventSagaHandler
         yield put(undoAction(undoPayload!));
       }
     } finally {
-      if (yield cancelled()) {
+      if ((yield cancelled()) as any) {
         yield put(errorAction(Error('Action cancelled')));
         if (undoOnError) {
           yield put(undoAction(undoPayload!));

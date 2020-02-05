@@ -1,5 +1,5 @@
-import { SagaIterator } from 'redux-saga';
 import { expectSaga } from 'redux-saga-test-plan';
+import { SagaIterator } from '../../src/typings';
 import { composeSagas } from '../../src/sagas/compose-sagas';
 
 describe('saga composition tests', () => {
@@ -8,21 +8,21 @@ describe('saga composition tests', () => {
   type T2 = T1 & { auth?: string };
   type T3 = T2 & { contentType: string };
 
-  function* auth(action: T1): SagaIterator {
+  function* auth(action: T1): SagaIterator<T2> {
     return {
       ...action,
       auth: 'It\'s a me! Mario!',
     };
   }
 
-  function* moreData(action: T2): SagaIterator {
+  function* moreData(action: T2): SagaIterator<T2> {
     return {
       ...action,
       data: `${action.data} and more!`,
     };
   }
 
-  function* contentType(action: T2): SagaIterator {
+  function* contentType(action: T2): SagaIterator<T3> {
     return {
       ...action,
       contentType: 'application/json',

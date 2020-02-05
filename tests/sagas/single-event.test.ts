@@ -1,15 +1,15 @@
 import { Action } from 'redux';
-import { SagaIterator } from 'redux-saga';
 import { call, put } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
+import { SagaIterator } from '../../src/typings';
 import { createSingleEventSaga, createSingleEventSagaHandler } from '../../src/sagas/single-event';
 import { SingleEventSagaHandlerConfiguration, MyAction } from '../../src/sagas/typings';
 
 describe('single event saga factory test', () => {
 
   type T1 = { data: string };
-  let emptyHandlerConfig: SingleEventSagaHandlerConfiguration<{}, string[]>;
-  let nonEmptyHandlerConfig: SingleEventSagaHandlerConfiguration<T1, string[]>;
+  let emptyHandlerConfig: SingleEventSagaHandlerConfiguration<{}, { data: string[] }>;
+  let nonEmptyHandlerConfig: SingleEventSagaHandlerConfiguration<T1, { data: string[] }>;
 
   beforeAll(() => {
     emptyHandlerConfig = {
@@ -203,7 +203,7 @@ describe('single event saga factory test', () => {
       const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        *beforeAction(args): SagaIterator {
+        *beforeAction(args): SagaIterator<{ data: string }> {
           yield put({ type: 'PROCESSING_ARGS', payload: { ...args } });
           return { data: 'We fight, we win!' };
         },
@@ -220,7 +220,7 @@ describe('single event saga factory test', () => {
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        *afterAction(res): SagaIterator {
+        *afterAction(res): SagaIterator<{ data: string[] }> {
           yield put({ type: 'PROCESSING_RESULT', payload: { ...res } });
           return { data: ['general', 'kenobi'] };
         },
@@ -237,7 +237,7 @@ describe('single event saga factory test', () => {
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
-        *afterAction(res, args): SagaIterator {
+        *afterAction(res, args): SagaIterator<{ data: string[] }> {
           yield put({ type: 'PROCESSING_RESULT', payload: { res, args } });
           return { data: ['general', 'kenobi'] };
         },
@@ -332,7 +332,7 @@ describe('single event saga factory test', () => {
         undoThreshold: 120,
         undoActionType: 'REQUEST_UNDO',
         undoAction: payload => ({ payload, type: 'UNDO' }),
-        *undoPayloadBuilder(): SagaIterator { return { data: 'Bye' }; },
+        *undoPayloadBuilder(): SagaIterator<{ data: string }> { return { data: 'Bye' }; },
       });
 
       return expectSaga(handler, requestAction)

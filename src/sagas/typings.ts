@@ -1,9 +1,7 @@
-import { Observable } from '@mrnkr/promise-queue';
 import { Action } from 'redux';
-import { SagaIterator } from 'redux-saga';
 import { ActionType, Predicate } from '@redux-saga/types';
 
-import { Omit } from '../typings';
+import { SagaIterator } from '../typings';
 
 export interface MyAction<TPayload, TError extends Error = Error> extends Action {
   payload?: TPayload;
@@ -33,10 +31,10 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   undoThreshold?: number;
   undoActionType?: string;
   undoAction?: (payload: TUndoPayload) => MyAction<TUndoPayload>;
-  undoPayloadBuilder?: (args?: TPayload) => SagaIterator;
+  undoPayloadBuilder?: (args?: TPayload) => SagaIterator<TUndoPayload>;
 
-  beforeAction?: (args?: TPayload) => SagaIterator;
-  afterAction?: (res: any, args?: TPayload) => SagaIterator;
+  beforeAction?: (args?: TPayload) => SagaIterator<any>;
+  afterAction?: (res: any, args?: TPayload) => SagaIterator<TResult>;
 
   action: (args?: any) => any;
 
@@ -48,19 +46,3 @@ export type SingleEventSagaHandlerConfiguration<TPayload, TResult, TUndoPayload 
     SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload>,
     'takeEvery' | 'cancelActionType'
   >;
-
-export interface ObservableSagaConfiguration<TResult> {
-  subscribe: ActionType | Predicate<Action>;
-  cancelActionType?: string;
-
-  observable: Observable<TResult>;
-  notifyIsActiveAction: () => Action;
-  nextAction: (payload: TResult) => MyAction<TResult>;
-  doneAction: () => Action;
-  errorAction: <TError extends Error>(err: TError) => MyAction<{}, TError>;
-
-  timeout?: number;
-}
-
-export type ObservableSagaHandlerConfiguration<TResult> =
-  Omit<ObservableSagaConfiguration<TResult>, 'subscribe' | 'cancelActionType'>;

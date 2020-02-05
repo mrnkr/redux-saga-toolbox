@@ -2,13 +2,10 @@
 
 [![NPM version][npm-image]][npm-url]
 [![Downloads][downloads-image]][npm-url]
-[![Twitter Follow][twitter-image]][twitter-url]
 
 [npm-image]:http://img.shields.io/npm/v/@mrnkr/redux-saga-toolbox.svg
 [npm-url]:https://npmjs.org/package/@mrnkr/redux-saga-toolbox
 [downloads-image]:http://img.shields.io/npm/dm/@mrnkr/redux-saga-toolbox.svg
-[twitter-image]:https://img.shields.io/twitter/follow/xmr_nkr.svg?style=social&label=Follow%20me
-[twitter-url]:https://twitter.com/xmr_nkr
 
 A set of utilities meant to have you write less and do more, better.
 
@@ -123,227 +120,6 @@ const watcher = createSingleEventSaga({
 });
 ```
 
-#### Observables
-
-Remember the difference between a Promise and an Observable? Promises resolve to a single value and then end their lifecycle. Observables represent streams of data which emit multiple values across their lifecycle. To know more, refer to google... Following are the things you should know if you're going to handle observables within your sagas created with redux-saga-toolbox. There are operations which are not supported like before and after action hooks, which are a problem which can be solved using the map operator in case you're working with an rxjs observable, undoing actions, so on and so forth.
-
-##### Basic configuration
-
-What's basic with observables is subscribing to them, processing the values they emit and notifying errors and completion. That's exactly what the following configuration does:
-
-```typescript
-import { createObservableSaga } from '@mrnkr/redux-saga-toolbox';
-import APIClient from 'my-api';
-
-const watcher = createObservableSaga({
-  observable: APIClient.streamOfInterestingData,
-  nextAction: val => ({ type: 'NEXT', payload: val }),
-  doneAction: () => ({ type: 'DONE' }),
-  errorAction: error => ({ error, type: 'ERROR' }),
-});
-```
-
-Something worth mentioning is the fact that observables are handled in a way that they should adhere to the Observable specification in rxjs: hence, they should implement the following interface:
-
-```typescript
-interface Observable<T> {
-  subscribe(
-    next: (value: T) => void,
-    error?: (error: any) => void,
-    complete?: () => void,
-  ): Subscription;
-}
-```
-
-Subscription is an object which implements the following interface:
-
-```typescript
-interface Subscription {
-  unsubscribe(): void;
-}
-```
-
-If you're using, for instance, firebase firestore and you're listening to changes in your collection's documents you may turn that observable into one of these like I did in the following snippet:
-
-```typescript
-const listenToChatroomsForUserHelper = (userId) => ({
-  subscribe: (next, error) => {
-    const unsubscribe = db
-      .collection('chatrooms')
-      .where(`participants.${userId}`, '==', true)
-      .onSnapshot(async snap => {
-        snap.docChanges.forEach(change =>
-          (change.type === 'added' || change.type === 'modified') && next(change)
-        );
-      }, err => {
-        error(err);
-      });
-
-    return {
-      unsubscribe
-    };
-  }
-});
-```
-
-**IMPORTANT**: If your observable emits an error the saga will cancel itself, it will stop listening to the observable, unsubscribe and everything.
-
-Just as `SingleEventSagaConfiguration` allows its `takeEvery` property to be a predicate (`<T>(e: T) => boolean`) `ObservableSagaGenerator` allows its `subscribe` property to be one as well. Refer to that part of the documentation if you need to, same if you'd like to check out a possible use case!
-
-##### Manual cancellation
-
-If your observable never completes, like the one in the example above, you can tell the saga to listen to a specific action and cancel then. Like so:
-
-```typescript
-const watcher = createObservableSaga({
-  ...restOfTheConfiguration,
-  cancelActionType: 'CANCEL',
-});
-```
-
-##### Inactive for too long? Timeout
-
-Your observable may be inactive for too long... Perhaps you don't mind, I think I might care so I added a timeout so that when the observable is inactive for that given amount of time the saga gets cancelled.
-
-```typescript
-const watcher = createObservableSaga({
-  ...restOfTheConfiguration,
-  timeout: 800,
-});
-```
-
-#### Form handling
-
-Do you need super configurable and super robust form handling that will offer a solution to all the use cases you could possibly face in your work? Well, this is not that solution, it is probably [redux-form](https://github.com/erikras/redux-form/) that you're looking for. Anyway, that is not my cup of tea personally so I created a simpler, smaller alternative. Check it out!
-
-To use it you need to first create the saga:
-
-```typescript
-import { createFormSaga } from '@mrnkr/redux-saga-toolbox';
-const watcher = createFormSaga();
-```
-
-Register the watcher in your root saga afterwards! Don't forget that!
-
-As for the state: it must have a field called `forms` which should be an empty object. The reducer you should register is also provided for you, import it like `import { formReducer } from '@mrnkr/redux-saga-toolbox';` and register it in your root reducer. Now you're ready to start dispatching actions in your forms!
-
-To do that you need to register the actions in your component like:
-
-```typescript
-import { formActions } from '@mrnkr/redux-saga-toolbox';
-import { bindActionCreators } from 'redux';
-
-const mapDispatchToProps = dispatch => bindActionCreators({
-  ...formActions,
-}, dispatch);
-```
-
-Now, as part of your props, you'll be able to find the following functions at your disposal:
-
-| Action                            | Parameters                                                                                                                                                 | Description                                                                                                                                                          |
-|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| registerForm(config)              | config = {   formName: string;   fields: string[];   unregisterOnSubmit: boolean; validator: (Dictionary<string>) => Dictionary<boolean>;   onSubmit: (Dictionary<string>) => Action; } | Adds the form object to the state with default values. The validator passed is used from within the saga to handle that logic and so is the onSubmit action creator. |
-| onFormChange(change)              | change = {   formName: string;   fieldName: string;   nextValue: string; }                                                                                 | Modifies the value in the field whose name is fieldName within the form whose name is formName.                                                                      |
-| formFieldFocus(formName, payload) | formName: string; payload = {   [fieldName]: { focused: true }; };                                                                                         | Marks all fields provided in the payload as in focus.                                                                                                                |
-| formFieldBlur(formName, payload)  | formName: string; payload = {   [fieldName]: { focused: false }; };                                                                                        | Marks all fields provided in the payload as not in focus.                                                                                                            |
-| submitForm(formName)              | formName: string                                                                                                                                           | Launches the submission process. Handled automatically by the saga.                                                                                                  |
-
-There are a few more but those are expected to be used only by the saga, like the actions which put validation results in the state. You're only expected to access that from the state. By the way, you also have some memoized selectors to use! Import them like: `import { formSelectors } from '@mrnkr/redux-saga-toolbox';` Here they are...
-
-| Selector                      | Description                                                                          |
-|-------------------------------|--------------------------------------------------------------------------------------|
-| selectValues(state, formName) | Return a Dictionary with the following structure: { [fieldName: string]: string }    |
-| selectFields(state, formName) | Return a Dictionary with the following structure: { [fieldName: string]: FormField } |
-| selectAll(state, formName)    | Return the complete form object.                                                     |
-
-So, in a nutshell, do the following:
-
-1. Register the saga and the reducer.
-2. Register your form.
-3. Use the actions from the input changes.
-
-```tsx
-import { formSelectors } from '@mrnkr/redux-saga-toolbox';
-
-class MyForm extends Component {
-
-  componentDidMount() {
-    this.props.registerForm({
-      formName: 'my-form',
-      fields: [
-        'fieldName',
-      ],
-      unregisterOnSubmit: true,
-      validator: authFormValidator,
-      onSubmit: (values) => {
-        return Actions.nextAction({
-          fieldName: values['fieldName'],
-        });
-      },
-    });
-  }
-
-  handleFormChange(e: React.FormEvent<HTMLInputElement>) {
-    onFormChange({
-      formName: 'my-form',
-      fieldName: e.target.name,
-      nextValue: e.target.value,
-    });
-  }
-
-  render() {
-    const { onFormChange, formFieldFocus, formFieldBlur, formValues, submitForm } = this.props;
-    return (
-      <form onSubmit={() => submitForm('my-form')}>
-        <input
-          name="fieldName"
-          type="text"
-          value={formValues['fieldName']}
-          onChange={this.handleFormChange}
-          onFocus={() => formFieldFocus('my-form', { 'fieldName': { focused: true } })}
-          onBlur={() => formFieldBlur('my-form', { 'fieldName': { focused: false } })}
-        />
-      </form>
-    );
-  }
-
-}
-
-const mapStateToProps = ({ forms }) => ({
-  formValues: formSelectors.selectValues(forms, 'my-form'),
-});
-```
-
-Done! You're handling your forms just like that! Keep your components stateless :) What is more, find a way to register your forms that does not require lifecycle hooks and boom, keep your components funcional only :D
-
-##### Initial values
-
-To configure your form so that it has initial values you may change your configuration object so that it looks like this:
-
-```typescript
-const formConfig = {
-  formName: 'my-form',
-  fields: {
-    fieldName: 'initialValue',
-  },
-  unregisterOnSubmit: true,
-  validator: authFormValidator,
-  onSubmit: (values) => {
-    return Actions.nextAction({
-      fieldName: values['fieldName'],
-    });
-  },
-};
-```
-
-##### I hate it when my forms get cleared! 😡
-
-Don't despair! It's okay. I hate it too. Didn't realize I would hate it as much as I do now. For that reason you may now set `unregisterOnSubmit` to `false` in your form config.
-
-#### Entity adapters
-
-I may document this, but I'd be repetitive. Best check out the original documentation for [ngrx/entity](https://ngrx.io/guide/entity) since the API and most of the code is actually the same. I added it here because I just removed the very few Angular dependencies it had and wanted to understand it a bit better. By the way: selectors are memoized :)
-
 ### Changelog
 
 * 1.0.0 - First release, had some trouble with config files. That's why the actual first release was 1.0.2 😬
@@ -357,6 +133,8 @@ I may document this, but I'd be repetitive. Best check out the original document
 * 1.0.14 - Fixed bug in addAll in entity adapter (both sorted and unsorted) (having bugs there means that I did not copy the whole thing carelessly, just remade it carelessly 😛)
 * 1.0.15 - Fixed bug that when a form had an error the saga stopped running.
 * 1.0.16 - Fixed bug in form saga - stops listening when the form is cleared.
+* 1.0.18 - Deprecated entity module and forms module. To use entity I encourage you find a way to do it yourself, to manage forms I recommend formik.
+* 2.0.0 - Removed deprecated modules
 
 ### The boy scout rule
 

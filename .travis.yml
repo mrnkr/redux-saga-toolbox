@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+  - lts/*
+  - node
+install:
+  - npm install
+  - npm uninstall redux redux-saga
+  - npm install -P redux redux-saga
+script:
+  - npm test
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

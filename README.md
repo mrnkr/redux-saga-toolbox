@@ -2,14 +2,16 @@
 
 [![NPM version][npm-image]][npm-url]
 [![Downloads][downloads-image]][npm-url]
+[![Build Status](https://travis-ci.com/mrnkr/redux-saga-toolbox.svg?branch=master)](https://travis-ci.com/mrnkr/redux-saga-toolbox)
+[![codecov](https://codecov.io/gh/mrnkr/redux-saga-toolbox/branch/master/graph/badge.svg)](https://codecov.io/gh/mrnkr/redux-saga-toolbox)
+[![License][license]][npm-url]
 
 [npm-image]:http://img.shields.io/npm/v/@mrnkr/redux-saga-toolbox.svg
 [npm-url]:https://npmjs.org/package/@mrnkr/redux-saga-toolbox
 [downloads-image]:http://img.shields.io/npm/dm/@mrnkr/redux-saga-toolbox.svg
+[license]:https://img.shields.io/github/license/mrnkr/redux-saga-toolbox
 
 A set of utilities meant to have you write less and do more, better.
-
-It's pretty well tested (99.07% code coverage which would be 100% if I had been able to make the istanbul comments work for those while (true) lines 😅). For now, either take my word for it or clone the repo and run `yarn test` but I'm learning how to use codecov so that I can put a badge proving this really soon 🤓
 
 ### Motivation
 

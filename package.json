@@ -7,9 +7,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "do-publish": "yarn build && yarn publish --access=public",
-    "test": "jest",
-    "fix-deps": "yarn remove redux redux-saga && yarn add redux redux-saga -P",
-    "update-promise-queue": "yarn remove @mrnkr/promise-queue && yarn add @mrnkr/promise-queue && yarn fix-deps"
+    "test": "jest"
   },
   "keywords": [
     "redux",
@@ -55,7 +53,7 @@
     ],
     "collectCoverage": true,
     "coverageReporters": [
-      "text"
+      "lcov"
     ]
   }
 }

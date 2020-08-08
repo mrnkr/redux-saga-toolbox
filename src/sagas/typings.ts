@@ -3,24 +3,24 @@ import { ActionType, Predicate } from '@redux-saga/types';
 
 import { SagaIterator } from '../typings';
 
-export interface MyAction<TPayload, TError extends Error = Error> extends Action {
+export interface PayloadAction<TPayload, TError extends Error = Error> extends Action {
   payload?: TPayload;
   cancelId?: string;
   undoId?: string;
   error?: TError;
 }
 
-export type CancelAction = Omit<MyAction<{}>, 'payload' | 'undoId' | 'error'>;
-export type ErrorAction<T extends Error> = Omit<MyAction<{}, T>, 'payload' | 'cancelId' | 'undoId'>
-export type UndoAction = Omit<MyAction<{}>, 'payload' | 'cancelId' | 'error'>;
+export type CancelAction = Omit<PayloadAction<{}>, 'payload' | 'undoId' | 'error'>;
+export type ErrorAction<T extends Error> = Omit<PayloadAction<{}, T>, 'payload' | 'cancelId' | 'undoId'>;
+export type UndoAction = Omit<PayloadAction<{}>, 'payload' | 'cancelId' | 'error'>;
 
 export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = TPayload> {
-  takeEvery: ActionType | Predicate<MyAction<TPayload>>;
+  takeEvery: ActionType | Predicate<PayloadAction<TPayload>>;
   cancelActionType?: string;
 
   loadingAction: () => Action;
-  commitAction: (payload: TResult | TPayload) => MyAction<TPayload | TResult>;
-  successAction: (payload?: TResult) => MyAction<TResult>;
+  commitAction: (payload: TResult | TPayload) => PayloadAction<TPayload | TResult>;
+  successAction: (payload?: TResult) => PayloadAction<TResult>;
   errorAction: <TError extends Error>(err: TError) => ErrorAction<TError>;
 
   runAfterCommit?: boolean;
@@ -30,7 +30,7 @@ export interface SingleEventSagaConfiguration<TPayload, TResult, TUndoPayload = 
   undoOnError?: boolean;
   undoThreshold?: number;
   undoActionType?: string;
-  undoAction?: (payload: TUndoPayload) => MyAction<TUndoPayload>;
+  undoAction?: (payload: TUndoPayload) => PayloadAction<TUndoPayload>;
   undoPayloadBuilder?: (args?: TPayload) => SagaIterator<TUndoPayload>;
 
   beforeAction?: (args?: TPayload) => SagaIterator<any>;

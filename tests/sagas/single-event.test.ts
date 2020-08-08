@@ -3,7 +3,7 @@ import { call, put } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import { SagaIterator } from '../../src/typings';
 import { createSingleEventSaga, createSingleEventSagaHandler } from '../../src/sagas/single-event';
-import { SingleEventSagaHandlerConfiguration, MyAction } from '../../src/sagas/typings';
+import { SingleEventSagaHandlerConfiguration, PayloadAction } from '../../src/sagas/typings';
 
 describe('single event saga factory test', () => {
 
@@ -170,7 +170,10 @@ describe('single event saga factory test', () => {
     });
 
     it('should commit args when running after commit', () => {
-      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const requestAction: PayloadAction<T1> = {
+        type: 'REQUEST',
+        payload: { data: 'We\'re clones!' },
+      };
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
@@ -185,7 +188,10 @@ describe('single event saga factory test', () => {
     });
 
     it('should call the action with the action\'s payload as args', () => {
-      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const requestAction: PayloadAction<T1> = {
+        type: 'REQUEST',
+        payload: { data: 'We\'re clones!' },
+      };
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
@@ -200,7 +206,10 @@ describe('single event saga factory test', () => {
     });
 
     it('should process arguments before running the action', () => {
-      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const requestAction: PayloadAction<T1> = {
+        type: 'REQUEST',
+        payload: { data: 'We\'re clones!' },
+      };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
         *beforeAction(args): SagaIterator<{ data: string }> {
@@ -216,7 +225,10 @@ describe('single event saga factory test', () => {
     });
 
     it('should process result after running the action', () => {
-      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const requestAction: PayloadAction<T1> = {
+        type: 'REQUEST',
+        payload: { data: 'We\'re clones!' },
+      };
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
@@ -233,7 +245,10 @@ describe('single event saga factory test', () => {
     });
 
     it('should allow processing result using args as parameter after running action', () => {
-      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'We\'re clones!' } };
+      const requestAction: PayloadAction<T1> = {
+        type: 'REQUEST',
+        payload: { data: 'We\'re clones!' },
+      };
       const fakeData = { data: ['hello', 'there'] };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
@@ -325,7 +340,7 @@ describe('single event saga factory test', () => {
     });
 
     it('should process the undo payload after loading', () => {
-      const requestAction: MyAction<T1> = { type: 'REQUEST', payload: { data: 'Hello' } };
+      const requestAction: PayloadAction<T1> = { type: 'REQUEST', payload: { data: 'Hello' } };
       const handler = createSingleEventSagaHandler({
         ...nonEmptyHandlerConfig,
         runAfterCommit: true,
@@ -372,7 +387,7 @@ describe('single event saga factory test', () => {
     });
 
     it('should undo for the undoId is a match', () => {
-      const requestAction: MyAction<{}> = { type: 'REQUEST', undoId: '0462318473' };
+      const requestAction: PayloadAction<{}> = { type: 'REQUEST', undoId: '0462318473' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
         runAfterCommit: true,
@@ -390,7 +405,7 @@ describe('single event saga factory test', () => {
     });
 
     it('should not undo for the undoId is different', () => {
-      const requestAction: MyAction<{}> = { type: 'REQUEST', undoId: '0462318473' };
+      const requestAction: PayloadAction<{}> = { type: 'REQUEST', undoId: '0462318473' };
       const handler = createSingleEventSagaHandler({
         ...emptyHandlerConfig,
         runAfterCommit: true,

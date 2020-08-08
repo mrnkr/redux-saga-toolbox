@@ -13,7 +13,7 @@ import {
 
 import { assertValidConfig } from './validation';
 import {
-  MyAction,
+  PayloadAction,
   SingleEventSagaConfiguration,
   SingleEventSagaHandlerConfiguration,
   UndoAction,
@@ -22,7 +22,7 @@ import {
 import { SagaIterator } from '../typings';
 import { MAX_TIMEOUT } from './vars';
 
-export function createSingleEventSaga<TPayload, TResult, TAction extends MyAction<TPayload>>(
+export function createSingleEventSaga<TPayload, TResult, TAction extends PayloadAction<TPayload>>(
   config: SingleEventSagaConfiguration<TPayload, TResult>,
 ) {
   assertValidConfig(config);
@@ -56,7 +56,7 @@ export function createSingleEventSaga<TPayload, TResult, TAction extends MyActio
 }
 
 export function createSingleEventSagaHandler
-<TPayload, TResult, TAction extends MyAction<TPayload>>({
+<TPayload, TResult, TAction extends PayloadAction<TPayload>>({
   loadingAction,
   beforeAction = function* (args: any): SagaIterator<any> { return args; },
   action,
